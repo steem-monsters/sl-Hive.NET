@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace sl_Hive.Models
+namespace sl_Hive
 {
     public class HiveJsonRPCResult<ResultType>
     {
