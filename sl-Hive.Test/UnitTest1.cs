@@ -30,10 +30,21 @@ namespace sl_Hive.Test
             var response = task.Result;
             Assert.IsNotNull(response.Result);
 
-            var blockTask = hive.QueryBlockchain<Block>(new BlockRequest() { BlockNumber = new List<Int64>() { response.Result.Head_Block_Number - 4 } });
+            var blockTask = hive.QueryBlockchain<Block>(new BlockRequest() { BlockNumber = new List<Int64>() { response.Result.Head_Block_Number } });
             Task.WaitAll(blockTask);
             Assert.IsNotNull(blockTask.Result);
             Assert.IsNotNull(blockTask.Result.Result);
+
+        }
+
+        [TestMethod]
+        public void GetAccounts()
+        {
+            var task = hive.QueryBlockchain<Accounts[]>(new AccountsRequest() {  Accounts = new List<List<string>>() { new List<string>() { "farpetrad" } } });
+            Task.WaitAll(task);
+            Assert.IsNotNull(task.Result);
+            var response = task.Result;
+            Assert.IsNotNull(response.Result);
 
         }
     }
