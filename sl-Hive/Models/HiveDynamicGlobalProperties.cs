@@ -2,7 +2,6 @@
 
 namespace sl_Hive.Models
 {
-    [RPCMethod("database_api", "get_dynamic_global_properties")]
     public class HiveDynamicGlobalProperties
     {
         public Int64 Id { get; set; } = -1;
