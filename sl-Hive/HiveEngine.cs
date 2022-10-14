@@ -29,10 +29,13 @@ namespace sl_Hive
             try
             {
                 var result = "";
-                var val = request.Method;
-
                 string strTest = JsonConvert.SerializeObject(request);
-                using (var oResponse = await httpClient.PostAsync(RPCNodeCollection.nodes.ToList()[activeNode].Url, new StringContent(strTest, System.Text.Encoding.UTF8, "application/json")))
+                using (var oResponse = await httpClient.PostAsync(
+                    RPCNodeCollection.nodes.ToList()[activeNode].Url, 
+                    new StringContent(strTest, 
+                    Encoding.UTF8, 
+                    "application/json")
+                    ))
                 {
                     oResponse.EnsureSuccessStatusCode();
                     result = await oResponse.Content.ReadAsStringAsync();
