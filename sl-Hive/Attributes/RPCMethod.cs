@@ -1,5 +1,6 @@
 ﻿namespace sl_Hive.Attributes
 {
+    [AttributeUsage(AttributeTargets.Class)]
     public class RPCMethod : Attribute
     {
         public string Database { get; set; } = string.Empty;
