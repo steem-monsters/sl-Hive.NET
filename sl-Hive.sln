@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sl-Hive", "sl-Hive\sl-Hive.csproj", "{2A2D2AF1-8C8D-4864-83A0-9E72A067B574}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sl-Hive.Test", "sl-Hive.Test\sl-Hive.Test.csproj", "{A2173720-68F1-4907-A97E-C4B01EFD8E51}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2A2D2AF1-8C8D-4864-83A0-9E72A067B574}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A2D2AF1-8C8D-4864-83A0-9E72A067B574}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A2D2AF1-8C8D-4864-83A0-9E72A067B574}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A2D2AF1-8C8D-4864-83A0-9E72A067B574}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2173720-68F1-4907-A97E-C4B01EFD8E51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2173720-68F1-4907-A97E-C4B01EFD8E51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2173720-68F1-4907-A97E-C4B01EFD8E51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2173720-68F1-4907-A97E-C4B01EFD8E51}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4954DEB8-FD9F-4A3B-A018-62C29E228CC3}
+	EndGlobalSection
+EndGlobal
