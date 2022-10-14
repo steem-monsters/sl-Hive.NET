@@ -55,5 +55,21 @@ namespace sl_Hive.Test
             Assert.IsNotNull(response.Result);
 
         }
+
+        [TestMethod]
+        public void GetBlockHeader()
+        {
+            var task = hive.QueryBlockchain<HiveDynamicGlobalProperties>(new HiveDynamicGlobalPropertiesRequest());
+            Task.WaitAll(task);
+
+            Assert.IsNotNull(task.Result);
+            var response = task.Result;
+            Assert.IsNotNull(response.Result);
+
+            var blockTask = hive.QueryBlockchain<BlockHeader>(new BlockHeaderRequest() { BlockNumber = new List<Int64>() { response.Result.Head_Block_Number } });
+            Task.WaitAll(blockTask);
+            Assert.IsNotNull(blockTask.Result);
+            Assert.IsNotNull(blockTask.Result.Result);
+        }
     }
 }
