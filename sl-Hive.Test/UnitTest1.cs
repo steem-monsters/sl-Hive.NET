@@ -42,10 +42,10 @@ namespace sl_Hive.Test
         {
             var task = hive.QueryBlockchain<Accounts[]>(
                 new AccountsRequest() {  
-                Accounts = new List<List<string>>() { 
-                    new List<string>() { 
-                        "farpetrad", "ahsoka", "cryptomancer", "antiosh" 
-                    } 
+                    Accounts = new List<List<string>>() { 
+                        new List<string>() { 
+                            "farpetrad", "ahsoka", "cryptomancer", "antiosh" 
+                        } 
                     } 
                 }
             );
