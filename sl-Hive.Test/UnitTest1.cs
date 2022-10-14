@@ -40,7 +40,15 @@ namespace sl_Hive.Test
         [TestMethod]
         public void GetAccounts()
         {
-            var task = hive.QueryBlockchain<Accounts[]>(new AccountsRequest() {  Accounts = new List<List<string>>() { new List<string>() { "farpetrad", "ahsoka", "cryptomancer", "antiosh" } } });
+            var task = hive.QueryBlockchain<Accounts[]>(
+                new AccountsRequest() {  
+                Accounts = new List<List<string>>() { 
+                    new List<string>() { 
+                        "farpetrad", "ahsoka", "cryptomancer", "antiosh" 
+                    } 
+                    } 
+                }
+            );
             Task.WaitAll(task);
             Assert.IsNotNull(task.Result);
             var response = task.Result;
