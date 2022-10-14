@@ -49,8 +49,8 @@ namespace sl_Hive.Models
         public string Vesting_Withdraw_Rate { get; set; } = string.Empty;
         public string post_voting_power { get; set; } = string.Empty;
         public DateTime? Next_Vesting_Withdrawal { get; set; } = null;
-        public int Withdrawn { get; set; } = 0;
-        public int To_Withdraw { get; set; } = 0;
+        public string Withdrawn { get; set; } = string.Empty;
+        public string To_Withdraw { get; set; } = string.Empty;
         public int Withdraw_Routes { get; set; } = 0;
         public int Pending_Transfers { get; set; } = 0;
         public int Curation_Rewards { get; set; } = 0;
