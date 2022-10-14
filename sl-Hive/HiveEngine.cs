@@ -1,11 +1,6 @@
 ﻿using Newtonsoft.Json;
 using sl_Hive.Requests;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace sl_Hive
 {
@@ -30,15 +25,15 @@ namespace sl_Hive
             {
                 var result = "";
                 string strTest = JsonConvert.SerializeObject(request);
-                using (var oResponse = await httpClient.PostAsync(
+                using (var rawResponse = await httpClient.PostAsync(
                     RPCNodeCollection.nodes.ToList()[activeNode].Url, 
                     new StringContent(strTest, 
                     Encoding.UTF8, 
                     "application/json")
                     ))
                 {
-                    oResponse.EnsureSuccessStatusCode();
-                    result = await oResponse.Content.ReadAsStringAsync();
+                    rawResponse.EnsureSuccessStatusCode();
+                    result = await rawResponse.Content.ReadAsStringAsync();
                 }
 
                 var hiveResponse = JsonConvert.DeserializeObject<HiveJsonRPCResult<ResponseType>>(result);

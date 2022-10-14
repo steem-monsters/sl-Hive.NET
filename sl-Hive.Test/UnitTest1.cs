@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using sl_Hive.Models;
 using sl_Hive.Requests;
 
@@ -29,9 +30,10 @@ namespace sl_Hive.Test
             var response = task.Result;
             Assert.IsNotNull(response.Result);
 
-            var blockTask = hive.QueryBlockchain<Block>(new BlockRequest() { BlockNumber = new List<Int64>() { response.Result.Head_Block_Number } });
+            var blockTask = hive.QueryBlockchain<Block>(new BlockRequest() { BlockNumber = new List<Int64>() { response.Result.Head_Block_Number - 4 } });
             Task.WaitAll(blockTask);
             Assert.IsNotNull(blockTask.Result);
+            Assert.IsNotNull(blockTask.Result.Result);
 
         }
     }
