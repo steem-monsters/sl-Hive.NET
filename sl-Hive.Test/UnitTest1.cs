@@ -10,7 +10,7 @@ namespace sl_Hive.Test
         public void ReadGlobalBlockchainProperties()
         {
             var hive = new HiveEngine();
-            var task = hive.queryBlockchain<HiveDynamicGlobalProperties>(new HiveDynamicGlobalPropertiesRequest());
+            var task = hive.QueryBlockchain<HiveDynamicGlobalProperties>(new HiveDynamicGlobalPropertiesRequest());
             Task.WaitAll(task);
 
             Assert.IsNotNull(task.Result);

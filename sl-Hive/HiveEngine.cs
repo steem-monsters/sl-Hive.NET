@@ -25,7 +25,7 @@ namespace sl_Hive
 
 
 
-        public async Task<HiveJsonRPCResult<ResponseType>> queryBlockchain<ResponseType>(HiveJsonRequest request)
+        public async Task<HiveJsonRPCResult<ResponseType>> QueryBlockchain<ResponseType>(HiveJsonRequest request)
         {
             try
             {
@@ -45,8 +45,7 @@ namespace sl_Hive
             catch(Exception ex)
             {
                 RotateActiveNode();
-                var stop = ex.Message;
-                throw new Exception("Unable to process request");
+                throw new Exception($"Unable to process request: {ex.Message}");
             }
         }
 
