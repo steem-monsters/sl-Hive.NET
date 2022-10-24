@@ -141,17 +141,18 @@ namespace sl_Hive
         internal static byte[] WriteVarInt32(int value)
         {
             // ref: https://github.com/protobufjs/bytebuffer.js/blob/master/src/types/varints/varint32.js
-            var result = (uint)value;
+            var u = (uint)value;
 
-            var bytes = new List<byte>(CalculateVarInt32(result));
-            while (result >= 0x80)
+            var result = new byte[CalculateVarInt32(u)];
+            var i = 0;
+            while (u > 0x7Fu)
             {
-                bytes.Add((byte)(result | ~0x7Fu));
-                result >>= 7;
+                result[i++] = (byte)(u | ~0x7Fu);
+                u >>= 7;
             }
-            bytes.Add(BitConverter.GetBytes(result)[0]);
+            result[i++] = (byte)u;
 
-            return bytes.ToArray();
+            return result;
         }
         
         private static byte[] UniqueEntrophy = RandomNumberGenerator.GetBytes(2);
