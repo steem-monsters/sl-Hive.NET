@@ -26,9 +26,9 @@ namespace sl_Hive
                 var result = "";
                 string strTest = JsonConvert.SerializeObject(request);
                 using (var rawResponse = await httpClient.PostAsync(
-                    RPCNodeCollection.nodes.ToList()[activeNode].Url, 
-                    new StringContent(strTest, 
-                    Encoding.UTF8, 
+                    RPCNodeCollection.nodes.ToList()[activeNode].Url,
+                    new StringContent(strTest,
+                    Encoding.UTF8,
                     "application/json")
                     ))
                 {
@@ -38,8 +38,8 @@ namespace sl_Hive
 
                 var hiveResponse = JsonConvert.DeserializeObject<HiveJsonRPCResult<ResponseType>>(result);
                 return hiveResponse;
-            } 
-            catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 RotateActiveNode();
                 throw new Exception($"Unable to process request: {ex.Message}");

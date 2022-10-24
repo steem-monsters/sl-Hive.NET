@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-
-namespace sl_Hive.Models
+﻿namespace sl_Hive.Models
 {
     public class Accounts
     {
@@ -68,7 +66,7 @@ namespace sl_Hive.Models
         public string Vesting_Balance { get; set; } = string.Empty;
         public int Reputation { get; set; } = 0;
         public List<string> Transfer_History { get; set; } = new List<string>();
-        public List<string> Market_History {get;set;} = new List<string>();
+        public List<string> Market_History { get; set; } = new List<string>();
         public List<string> Post_History { get; set; } = new List<string>();
         public List<string> Vote_History { get; set; } = new List<string>();
         public List<string> Other_History { get; set; } = new List<string>();
