@@ -7,23 +7,23 @@ namespace sl_Hive
 {
     public class Memo
     {
-        private class EncryptedMemoObject
+        private readonly ref struct EncryptedMemoObject
         {
-            public byte[]? From { get; init; }
-            public byte[]? To { get; init; }
+            public ReadOnlySpan<byte> From { get; init; }
+            public ReadOnlySpan<byte> To { get; init; }
             public long Check { get; init; }
-            public ulong Nonce { get; init; }
-            public byte[]? Encrypted { get; init; }
+            public ReadOnlySpan<byte> Nonce { get; init; }
+            public ReadOnlySpan<byte> Encrypted { get; init; }
 
             public ReadOnlySpan<byte> Pack() {
-                if( From == null || To == null || Encrypted == null ) throw new Exception("Invalid object");
+                if( From.Length == 0 || To.Length == 0 || Encrypted.Length == 0 ) throw new Exception("Invalid object");
 
                 return Buffers.From(
                     From,
                     To,
-                    // Hack: Only getting bytes is NOT architecture independent.
+                    // TODO: Only getting bytes is NOT architecture independent.
                     // This should be explicit network byte order.
-                    BitConverter.GetBytes(Nonce),
+                    Nonce,
                     BitConverter.GetBytes(Check).AsSpan()[..4],
                     EncodeVarInt32(Encrypted.Length),
                     Encrypted
@@ -53,8 +53,10 @@ namespace sl_Hive
             );
         }
 
-        private string Encode(string memo, PublicKey publicKey, PrivateKey privateKey) {
+        private string Encode(string memo, PublicKey publicKey, PrivateKey privateKey, ReadOnlySpan<byte> nonce = default) {
             if( publicKey == null || privateKey == null ) throw new Exception("Unable to load public or private keys");
+
+            var actualNonce = nonce.Length == 0 ? UniqueNonce() : nonce;
 
 
             var bytes = Encoding.UTF8.GetBytes(memo);
@@ -65,10 +67,10 @@ namespace sl_Hive
                 bytes
             );
 
-            var nonce = Convert.ToUInt64(109219769622765344); //UniqueNonce());
+            //var nonce = Convert.ToUInt64(109219769622765344); //UniqueNonce());
 
             Span<byte> encryptionKey = SHA512.HashData(Buffers.From(
-                BitConverter.GetBytes(nonce),
+                actualNonce,
                 privateKey.GetSharedSecret(publicKey)
             ));
             var iv = encryptionKey.Slice(32, 16);
@@ -81,9 +83,9 @@ namespace sl_Hive
 
             var encrypted = Encrypt(memoBuffer, iv.ToArray(), key.ToArray());
 
-            var encryptedMemo = new EncryptedMemoObject() {
+            var encryptedMemo = new EncryptedMemoObject {
                 Check = checkValue,
-                Nonce = nonce,
+                Nonce = actualNonce,
                 Encrypted = encrypted,
                 From = PublicKey.From(privateKey.GetPublicKey()).Key,
                 To = publicKey.Key
@@ -100,13 +102,17 @@ namespace sl_Hive
             return result;
         }
 
-        private static byte[] Encrypt(ReadOnlySpan<byte> buffer, byte[] iv, byte[] key) {
+        private static ReadOnlySpan<byte> Encrypt(ReadOnlySpan<byte> buffer, byte[] iv, byte[] key) {
             using var crypto = CreateCrypto(iv, key);
             using var encryptor = crypto.CreateEncryptor();
             using var memory = new MemoryStream();
-            using var swEncrypt = new StreamWriter(new CryptoStream(memory, encryptor, CryptoStreamMode.Write, false));
-            swEncrypt.Write(Encoding.UTF8.GetString(buffer));
-            return memory.ToArray();
+            using(var swEncrypt = new StreamWriter(new CryptoStream(memory, encryptor, CryptoStreamMode.Write, false))) {
+                swEncrypt.Write(Encoding.UTF8.GetString(buffer));
+            }
+
+            return memory.TryGetBuffer(out var result)
+                ? result.AsSpan()
+                : memory.ToArray().AsSpan();
         }
 
 
@@ -144,12 +150,10 @@ namespace sl_Hive
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static byte[] EncodeVarInt32(int value) => EncodeVarInt32(unchecked((uint)value));
 
-        private static byte[] UniqueEntrophy = RandomNumberGenerator.GetBytes(2);
-
-        private static long UniqueNonce() {
-            var time = DateTime.Now.Ticks;
-            var entropy = Convert.ToInt32(UniqueEntrophy[0] << 8 | UniqueEntrophy[1]) % 0xffff;
-            return time << 16 | long.Parse(entropy.ToString());
+        private static Span<byte> UniqueNonce() {
+            Span<byte> result = new byte[32];
+            RandomNumberGenerator.Fill(result);
+            return result;
         }
     }
 }
