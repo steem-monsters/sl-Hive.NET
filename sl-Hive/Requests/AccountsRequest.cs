@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 using sl_Hive.Attributes;
 
 namespace sl_Hive.Requests
@@ -6,7 +6,7 @@ namespace sl_Hive.Requests
     [RpcMethod("condenser_api", "get_accounts")]
     public class AccountsRequest : HiveJsonRequest
     {
-        [JsonProperty("params")]
+        [JsonPropertyName("params")]
         public IReadOnlyList<IReadOnlyList<string>> Accounts { get; init; } = default!;
     }
 }

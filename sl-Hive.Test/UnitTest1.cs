@@ -49,7 +49,9 @@ namespace sl_Hive.Test
             var response = await hive.QueryBlockchain<HiveDynamicGlobalProperties>(new HiveDynamicGlobalPropertiesRequest());
             Assert.IsNotNull(response.Result);
 
-            var block = await hive.QueryBlockchain<BlockHeader>(new BlockHeaderRequest { BlockNumber = new[] { response.Result.Head_Block_Number } });
+            var block = await hive.QueryBlockchain<BlockHeader>(new BlockHeaderRequest {
+                BlockNumber = new[] { response.Result.Head_Block_Number }
+            });
             Assert.IsNotNull(block);
             Assert.IsNotNull(block.Result);
         }

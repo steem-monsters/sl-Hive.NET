@@ -1,17 +1,17 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using System.Text.Json.Nodes;
 
 namespace sl_Hive.Models
 {
     public class HiveTransaction
     {
-        public string Ref_Block_Num { get; set; } = string.Empty;
-        public string Ref_Block_Prefix { get; set; } = string.Empty;
+        public ulong Ref_Block_Num { get; set; }
+        public ulong Ref_Block_Prefix { get; set; }
         public DateTime? Expiration { get; set; } = null;
-        public IReadOnlyList<JArray> Operations = new List<JArray>();
-        public IReadOnlyList<JObject> Extensions { get; set; } = new List<JObject>();
+        public IReadOnlyList<JsonArray> Operations = new List<JsonArray>();
+        public IReadOnlyList<JsonNode> Extensions { get; set; } = new List<JsonNode>();
         public IReadOnlyList<string> Signatures { get; set; } = new List<string>();
         public string Transaction_id { get; set; } = string.Empty;
-        public long Block_Num { get; set; } = -1;
-        public long Transaction_Num { get; set; } = -1;
+        public ulong Block_Num { get; set; }
+        public ulong Transaction_Num { get; set; }
     }
 }

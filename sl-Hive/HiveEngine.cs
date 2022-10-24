@@ -1,6 +1,8 @@
-﻿using Newtonsoft.Json;
-using sl_Hive.Requests;
+﻿using sl_Hive.Requests;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace sl_Hive
 {
@@ -14,7 +16,7 @@ namespace sl_Hive
             _httpClient = httpClient;
             _nodes = nodes;
         }
-        
+
         private string GetActiveNodeUrl() {
             if( _nodes.Count == 0 ) {
                 throw new InvalidOperationException("No nodes available");
@@ -28,9 +30,15 @@ namespace sl_Hive
         }
 
 
+        private static readonly JsonSerializerOptions _options = new JsonSerializerOptions {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            PropertyNameCaseInsensitive = true,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString
+        };
+
         public async Task<HiveJsonRPCResult<TResponseType>> QueryBlockchain<TResponseType>(HiveJsonRequest request) {
             try {
-                var requestText = JsonConvert.SerializeObject(request);
+                var requestText = JsonSerializer.Serialize<object>(request, _options);
                 using var rawResponse = await _httpClient.PostAsync(
                     GetActiveNodeUrl(),
                     new StringContent(requestText,
@@ -39,7 +47,12 @@ namespace sl_Hive
                 );
                 rawResponse.EnsureSuccessStatusCode();
                 var text = await rawResponse.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<HiveJsonRPCResult<TResponseType>>(text);
+
+                if( string.IsNullOrEmpty(text) ) {
+                    throw new Exception("Unexpected Json response");
+                }
+
+                return JsonSerializer.Deserialize<HiveJsonRPCResult<TResponseType>>(text, _options)!;
             }
             catch( Exception ex ) {
                 NextNode();

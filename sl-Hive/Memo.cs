@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Net;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using SimpleBase;
@@ -21,9 +22,9 @@ namespace sl_Hive
                 return Buffers.From(
                     From,
                     To,
+                    Nonce,
                     // TODO: Only getting bytes is NOT architecture independent.
                     // This should be explicit network byte order.
-                    Nonce,
                     BitConverter.GetBytes(Check).AsSpan()[..4],
                     EncodeVarInt32(Encrypted.Length),
                     Encrypted
@@ -55,11 +56,10 @@ namespace sl_Hive
         }
 
         private string Encode(string memo, PublicKey publicKey, PrivateKey privateKey, ReadOnlySpan<byte> nonce) {
-            if( publicKey == null || privateKey == null ) throw new Exception("Unable to load public or private keys");
+            if( !publicKey.IsValid || !privateKey.IsValid ) throw new Exception("Unable to load public or private keys");
 
 
             var bytes = Encoding.UTF8.GetBytes(memo);
-            if( bytes == null ) throw new Exception("Unable to encode message buffer");
 
             var memoBuffer = Buffers.From(
                 EncodeVarInt32(bytes.Length),
@@ -76,6 +76,7 @@ namespace sl_Hive
 
             // TODO: Should this be int or maybe uint?
             // TODO: Explicit network byte order.
+            
             var checkValue = BitConverter.ToInt32(SHA256.HashData(encryptionKey), 0);
 
             var encrypted = Encrypt(memoBuffer, iv.ToArray(), key.ToArray());

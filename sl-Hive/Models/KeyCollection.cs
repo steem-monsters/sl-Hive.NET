@@ -1,11 +1,11 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using System.Text.Json.Nodes;
 
 namespace sl_Hive.Models
 {
     public class KeyCollection
     {
         public int Weight_Threshold { get; set; } = 0;
-        public IReadOnlyList<JArray> Account_Auths { get; set; } = new List<JArray>();
-        public IReadOnlyList<JArray> Key_Auths { get; set; } = new List<JArray>();
+        public IReadOnlyList<JsonArray> Account_Auths { get; set; } = new List<JsonArray>();
+        public IReadOnlyList<JsonArray> Key_Auths { get; set; } = new List<JsonArray>();
     }
 }

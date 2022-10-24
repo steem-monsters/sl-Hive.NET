@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 using sl_Hive.Attributes;
 
 namespace sl_Hive.Requests
@@ -7,7 +7,7 @@ namespace sl_Hive.Requests
     [RpcMethod("condenser_api", "get_block_header")]
     public class BlockHeaderRequest : HiveJsonRequest
     {
-        [JsonProperty("params")]
+        [JsonPropertyName("params")]
         public IReadOnlyList<long> BlockNumber { get; set; }
     }
 }
