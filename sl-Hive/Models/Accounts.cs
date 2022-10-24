@@ -2,7 +2,7 @@
 {
     public class Accounts
     {
-        public Int64 Id { get; set; } = -1;
+        public long Id { get; set; } = -1;
         public string Name { get; set; } = string.Empty;
         public KeyCollection? Owner { get; set; } = null;
         public KeyCollection? Active { get; set; } = null;
@@ -53,7 +53,7 @@
         public int Pending_Transfers { get; set; } = 0;
         public int Curation_Rewards { get; set; } = 0;
         public int Posting_Rewards { get; set; } = 0;
-        public List<int> Proxied_Vsf_Votes { get; set; } = new List<int>();
+        public IReadOnlyList<int> Proxied_Vsf_Votes { get; set; } = new List<int>();
         public int Witnesses_Voted_For { get; set; } = 0;
         public DateTime? Last_Post { get; set; } = null;
         public DateTime? Last_Root_Post { get; set; } = null;
@@ -61,17 +61,17 @@
         public int Post_Bandwidth { get; set; } = 0;
         public int Pending_Claimed_Accounts { get; set; } = 0;
         public DateTime? Governance_Vote_Expiration_Ts { get; set; } = null;
-        public List<DelayedVote> Delayed_Votes { get; set; } = new List<DelayedVote>();
+        public IReadOnlyList<DelayedVote> Delayed_Votes { get; set; } = new List<DelayedVote>();
         public int Open_Recurrent_Transfers { get; set; } = 0;
         public string Vesting_Balance { get; set; } = string.Empty;
         public int Reputation { get; set; } = 0;
-        public List<string> Transfer_History { get; set; } = new List<string>();
-        public List<string> Market_History { get; set; } = new List<string>();
-        public List<string> Post_History { get; set; } = new List<string>();
-        public List<string> Vote_History { get; set; } = new List<string>();
-        public List<string> Other_History { get; set; } = new List<string>();
-        public List<string> Witness_Votes { get; set; } = new List<string>();
-        public List<string> Tags_Usage { get; set; } = new List<string>();
-        public List<string> Guest_Bloggers { get; set; } = new List<string>();
+        public IReadOnlyList<string> Transfer_History { get; set; } = new List<string>();
+        public IReadOnlyList<string> Market_History { get; set; } = new List<string>();
+        public IReadOnlyList<string> Post_History { get; set; } = new List<string>();
+        public IReadOnlyList<string> Vote_History { get; set; } = new List<string>();
+        public IReadOnlyList<string> Other_History { get; set; } = new List<string>();
+        public IReadOnlyList<string> Witness_Votes { get; set; } = new List<string>();
+        public IReadOnlyList<string> Tags_Usage { get; set; } = new List<string>();
+        public IReadOnlyList<string> Guest_Bloggers { get; set; } = new List<string>();
     }
 }

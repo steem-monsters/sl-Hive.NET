@@ -30,7 +30,7 @@ namespace sl_Hive
 		}
 
 		public byte[] GetSharedSecret(PublicKey publicKey) {
-			if( publicKey == null || publicKey.Q == null ) throw new Exception("Public key must be valid");
+			if( publicKey.Q == null ) throw new Exception("Public key must be valid");
 			var KB = publicKey.Q.GetEncoded(false);
 
 			var curve = SecNamedCurves.GetByName("secp256k1");
@@ -54,12 +54,8 @@ namespace sl_Hive
 			var P = KBP.Multiply(new Org.BouncyCastle.Math.BigInteger(1, r));
 			var S = P.AffineXCoord.ToBigInteger().ToByteArrayUnsigned();
 
-			Span<byte> buffer = stackalloc byte[64];
-			if( SHA512.TryHashData(S, buffer, out var written) ) {
-				return (written != buffer.Length ? buffer[..written] : buffer).ToArray();
-			}
 
-			throw new InvalidOperationException("Unable to hash data");
+			return SHA512.HashData(S);
 		}
 
 		public string GetPublicKey() {

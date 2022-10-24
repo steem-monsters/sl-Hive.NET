@@ -4,51 +4,47 @@ using System.Text;
 
 namespace sl_Hive
 {
-    public class HiveEngine
-    {
-        public RPCNodeCollection RPCNodeCollection => new RPCNodeCollection();
+	public class HiveEngine
+	{
+		private readonly HttpClient _httpClient;
+		private readonly IReadOnlyList<RPCNode> _nodes;
+		private int _currentNode;
 
-        private readonly HttpClient httpClient;
-        private int activeNode = -1;
+		public HiveEngine(HttpClient httpClient, IReadOnlyList<RPCNode> nodes) {
+			_httpClient = httpClient;
+			_nodes = nodes;
+		}
+		
+		private string GetActiveNodeUrl() {
+			if( _nodes.Count == 0 ) {
+				throw new InvalidOperationException("No nodes available");
+			}
 
-        public HiveEngine()
-        {
-            httpClient = new HttpClient();
-            activeNode = RPCNodeCollection.Nodes.Count() > 0 ? 0 : -1;
-        }
+			return _nodes[_currentNode].Url;
+		}
+
+		private void NextNode() {
+			_currentNode = (_currentNode + 1) % _nodes.Count;
+		}
 
 
-
-        public async Task<HiveJsonRPCResult<ResponseType>> QueryBlockchain<ResponseType>(HiveJsonRequest request)
-        {
-            try
-            {
-                var result = "";
-                string strTest = JsonConvert.SerializeObject(request);
-                using (var rawResponse = await httpClient.PostAsync(
-                    RPCNodeCollection.Nodes.ToList()[activeNode].Url, 
-                    new StringContent(strTest, 
-                    Encoding.UTF8, 
-                    "application/json")
-                    ))
-                {
-                    rawResponse.EnsureSuccessStatusCode();
-                    result = await rawResponse.Content.ReadAsStringAsync();
-                }
-
-                var hiveResponse = JsonConvert.DeserializeObject<HiveJsonRPCResult<ResponseType>>(result);
-                return hiveResponse;
-            }
-            catch (Exception ex)
-            {
-                RotateActiveNode();
-                throw new Exception($"Unable to process request: {ex.Message}");
-            }
-        }
-
-        private void RotateActiveNode()
-        {
-            activeNode = activeNode < RPCNodeCollection.Nodes.Count() ? activeNode + 1 : 0;
-        }
-    }
+		public async Task<HiveJsonRPCResult<TResponseType>> QueryBlockchain<TResponseType>(HiveJsonRequest request) {
+			try {
+				var requestText = JsonConvert.SerializeObject(request);
+				using var rawResponse = await _httpClient.PostAsync(
+					GetActiveNodeUrl(),
+					new StringContent(requestText,
+						Encoding.UTF8,
+						"application/json")
+				);
+				rawResponse.EnsureSuccessStatusCode();
+				var text = await rawResponse.Content.ReadAsStringAsync();
+				return JsonConvert.DeserializeObject<HiveJsonRPCResult<TResponseType>>(text);
+			}
+			catch( Exception ex ) {
+				NextNode();
+				throw new Exception($"Unable to process request: {ex.Message}");
+			}
+		}
+	}
 }

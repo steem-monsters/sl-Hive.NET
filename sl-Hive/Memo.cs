@@ -23,7 +23,7 @@ namespace sl_Hive
             public byte[] ToByteArray()
             {
                 if (From == null || To == null || Encrypted == null) throw new Exception("Invalid object");
-                var variant = Memo.WriteVariant32(Encrypted.Length);
+                var variant = Memo.WriteVarInt32(Encrypted.Length);
                 if (variant == null) throw new Exception("Unable to generate variant during encoding");
                 var result = From.Concat(To)
                                  .Concat(BitConverter.GetBytes(Nonce))
@@ -67,7 +67,7 @@ namespace sl_Hive
 
             var bytes = Encoding.UTF8.GetBytes(memo);
             if (bytes == null) throw new Exception("Unable to encode message buffer");
-            var memoBuffer = WriteVariant32(bytes.Length)?.Concat(bytes).ToArray();
+            var memoBuffer = WriteVarInt32(bytes.Length)?.Concat(bytes).ToArray();
             if (memoBuffer == null) throw new Exception("Error creating memo buffer");
 
             var nonce = Convert.ToUInt64(109219769622765344);//UniqueNonce());
@@ -103,84 +103,51 @@ namespace sl_Hive
             return $"{MemoPrefix}{Base58.Encode(encryptedMemo)}";
         }
 
-        private static byte[] Encrypt(byte[] buffer, byte[] iv, byte[] key)
-        {
-            using(var aesAlg = Aes.Create())
-            {
-                aesAlg.Mode = CipherMode.CBC;
-                aesAlg.Key = key;
-                aesAlg.IV = iv;
-
-
-                using (var encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV))
-                {
-                    using (MemoryStream msEncrypt = new MemoryStream())
-                    {
-                        using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
-                        {
-                            using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
-                            {
-                                swEncrypt.Write(Encoding.UTF8.GetString(buffer));
-                            }
-                            var encrypted = msEncrypt.ToArray();
-                            return encrypted;
-                        }
-                    }
-
-
-                }
-            }
+        private static Aes CreateCrypto(byte[] iv, byte[] key) {
+            var result = Aes.Create();
+            result.Mode = CipherMode.CBC;
+            result.Key = key;
+            result.IV = iv;
+            return result;
         }
 
-        private string Decrypt(byte[] buffer, byte[] iv, byte[] key)
-        {
-            using (var aesAlg = Aes.Create())
-            {
-                aesAlg.Mode = CipherMode.CBC;
-                aesAlg.Key = key;
-                aesAlg.IV = iv;
-
-                using (var decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV))
-                {
-                    using (var memStream = new MemoryStream())
-                    {
-                        using (var cryptoStream = new CryptoStream(memStream, decryptor, CryptoStreamMode.Read))
-                        {
-                            using (var strStream = new StreamReader(cryptoStream))
-                            {
-                                return strStream.ReadToEnd();
-                            }
-                        }
-                    }
-                }
-            }
+        private static byte[] Encrypt(byte[] buffer, byte[] iv, byte[] key) {
+            using var crypto = CreateCrypto(iv, key);
+            using var encryptor = crypto.CreateEncryptor();
+            using var memory = new MemoryStream();
+            using var swEncrypt = new StreamWriter(new CryptoStream(memory, encryptor, CryptoStreamMode.Write,false));
+            swEncrypt.Write(Encoding.UTF8.GetString(buffer));
+            return memory.ToArray();
         }
 
-        private static int CalculateVarint32(int value)
-        {
-            // ref: src/google/protobuf/io/coded_stream.cc
-            var result = value >> 0;
-            if (result < 1 << 7) return 1;
-            else if (result < 1 << 14) return 2;
-            else if (result < 1 << 21) return 3;
-            else if (result < 1 << 28) return 4;
-            else return 5;
+
+        private string Decrypt(byte[] buffer, byte[] iv, byte[] key) {
+            using var crypto = CreateCrypto(iv, key);
+            using var decryptor = crypto.CreateDecryptor();
+            using var strStream = new StreamReader(new CryptoStream(new MemoryStream(buffer), decryptor, CryptoStreamMode.Read, false));
+            return strStream.ReadToEnd();
         }
-        internal static byte[]? WriteVariant32(int value)
+
+        // ref: src/google/protobuf/io/coded_stream.cc
+        private static int CalculateVarInt32(uint value) =>
+            value switch {
+                < 1 << 7 => 1,
+                < 1 << 14 => 2,
+                < 1 << 21 => 3,
+                < 1 << 28 => 4,
+                _ => 5
+            };
+
+        internal static byte[] WriteVarInt32(int value)
         {
             // ref: https://github.com/protobufjs/bytebuffer.js/blob/master/src/types/varints/varint32.js
-            var size = CalculateVarint32(value);
-            var b = 0;
-            var result = value >> 0;
+            var result = (uint)value;
 
-            var bytes = new List<byte>();
-
+            var bytes = new List<byte>(CalculateVarInt32(result));
             while (result >= 0x80)
             {
-                b = (result & 0x7f) | 0x80;
-                //? if (NODE)
-                bytes.Add(BitConverter.GetBytes(b)[0]);
-                result = result >> 7;
+                bytes.Add((byte)(result | ~0x7Fu));
+                result >>= 7;
             }
             bytes.Add(BitConverter.GetBytes(result)[0]);
 
