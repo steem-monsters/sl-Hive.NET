@@ -15,12 +15,14 @@ namespace sl_Hive
             public ulong Nonce { get; init; }
             public byte[]? Encrypted { get; init; }
 
-            public ReadOnlySpan<byte> ToSpan() {
+            public ReadOnlySpan<byte> Pack() {
                 if( From == null || To == null || Encrypted == null ) throw new Exception("Invalid object");
 
                 return Buffers.From(
                     From,
                     To,
+                    // Hack: Only getting bytes is NOT architecture independent.
+                    // This should be explicit network byte order.
                     BitConverter.GetBytes(Nonce),
                     BitConverter.GetBytes(Check).AsSpan()[..4],
                     EncodeVarInt32(Encrypted.Length),
@@ -74,6 +76,7 @@ namespace sl_Hive
 
             
             // TODO: Should this be int or maybe uint?
+            // TODO: Explicit network byte order.
             var checkValue = BitConverter.ToInt32(SHA256.HashData(encryptionKey), 0);
 
             var encrypted = Encrypt(memoBuffer, iv.ToArray(), key.ToArray());
@@ -84,7 +87,7 @@ namespace sl_Hive
                 Encrypted = encrypted,
                 From = PublicKey.From(privateKey.GetPublicKey()).Key,
                 To = publicKey.Key
-            }.ToSpan();
+            }.Pack();
 
             return $"{MemoPrefix}{Base58.Bitcoin.Encode(encryptedMemo)}";
         }
