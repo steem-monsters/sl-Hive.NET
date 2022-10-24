@@ -16,21 +16,19 @@ namespace sl_Hive
             var buffered = networkId.Concat(wif).ToArray();
 
             var decodedWif = KeyUtils.EncodePrivateWif(buffered);
-            var pkey = new PrivateKey(wif, key);
+            var pkey = new PrivateKey(wif);
 
 
             return pkey;
         }
 
-        private readonly string PriKey;
         public readonly byte[] Bytes;
         public BigInteger D { get; set; } = 0;
 
-        private PrivateKey(byte[] wif, string priKey)
+        private PrivateKey(byte[] wif)
         {
             Bytes = wif;
             D = new BigInteger(wif, isBigEndian: true, isUnsigned: true);
-            PriKey = priKey;
         }
 
         public byte[] GetSharedSecret(PublicKey publicKey)
@@ -41,18 +39,18 @@ namespace sl_Hive
             var curve = SecNamedCurves.GetByName("secp256k1");
             var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H, curve.GetSeed());
 
-
+            // need a curve in the correct coordinate system!
             var c = domain.Curve.Configure().SetCoordinateSystem(Org.BouncyCastle.Math.EC.ECCurve.COORD_AFFINE).Create();
 
-
-            var lower = KB.Skip(1).Take(32).ToArray();
-            var upper = KB.Skip(33).ToArray();
-
-
+            var lower = KB.Skip(1)
+                          .Take(32)
+                          .ToArray();
+            var upper = KB.Skip(33)
+                          .ToArray();
+            // super important to signify that these are signed integers!
             var KBP = c.CreatePoint(
                 new Org.BouncyCastle.Math.BigInteger(1, lower),
-                new Org.BouncyCastle.Math.BigInteger(1, upper)
-                );
+                new Org.BouncyCastle.Math.BigInteger(1, upper));
 
             var r = D.ToByteArray().Take(32).Reverse().ToArray();
 
@@ -68,7 +66,6 @@ namespace sl_Hive
         public string GetPublicKey()
         {
             var bytes = Secp256K1Manager.GetPublicKey(Bytes, true);
-
             var key = KeyUtils.EncodePublicWif(bytes);
             return key;
         }

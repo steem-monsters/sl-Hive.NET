@@ -1,4 +1,5 @@
 ﻿using Cryptography.ECDSA;
+using System.Security.Cryptography;
 
 namespace sl_Hive
 {
@@ -15,12 +16,11 @@ namespace sl_Hive
 
             if (!network.SequenceEqual(NETWORK_ID)) throw new Exception("Error private key network mismatch");
 
-            var checkSum = new byte[4];
-            Array.Copy(s, s.Length - 4, checkSum, 0, checkSum.Length);
-
+            var checkSum = s.Skip(s.Length - 4).ToArray();
 
             var key = CutLastBytes(s, 4);
-            var checksumVerify = Checksum(key).Take(4).ToArray();
+            var checksumVerify = Checksum(key).Take(4)
+                                              .ToArray();
 
             if (!ValidateChecksum(s, checksumVerify, 4)) throw new Exception("Invalid checksum");
             key = CutFirstBytes(key, 1);
@@ -30,8 +30,7 @@ namespace sl_Hive
 
         public static string EncodePrivateWif(byte[] buffer)
         {
-            var network = new byte[1];
-            Array.Copy(buffer, network, network.Length);
+            var network = buffer.Take(1).ToArray();
 
             if (!network.SequenceEqual(NETWORK_ID)) throw new Exception("Error private key network mismatch");
 
@@ -42,23 +41,17 @@ namespace sl_Hive
 
         private static byte[] CutLastBytes(byte[] source, int cutCount)
         {
-
-
-            byte[] array = new byte[source.Length - cutCount];
-            Array.Copy(source, array, array.Length);
-            return array;
+            return source.Take(source.Length - cutCount).ToArray();
         }
 
         private static byte[] CutFirstBytes(byte[] source, int cutCount)
         {
-            byte[] array = new byte[source.Length - cutCount];
-            Array.Copy(source, cutCount, array, 0, array.Length);
-            return array;
+            return source.Skip(cutCount).ToArray();
         }
 
         private static byte[] Checksum(Byte[] hash)
-        {
-            return Sha256Manager.GetHash(Sha256Manager.GetHash(hash));
+        {            
+            return SHA256.HashData(SHA256.HashData((hash)));
         }
 
         private static bool ValidateChecksum(Byte[] s, Byte[] checkSum, int byteLength = 4)
@@ -78,8 +71,7 @@ namespace sl_Hive
 
             var buffer = Base58.Decode(slicedKey);
 
-            var checkSum = new byte[CHECKSUM_SIZE_BYTES];
-            Array.Copy(buffer, buffer.Length - CHECKSUM_SIZE_BYTES, checkSum, 0, checkSum.Length);
+            var checkSum = buffer.Skip(buffer.Length - CHECKSUM_SIZE_BYTES).ToArray();
 
             var key = buffer.Take(buffer.Length - CHECKSUM_SIZE_BYTES).ToArray();
 
