@@ -1,12 +1,7 @@
-﻿using Cryptography.ECDSA;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.ComponentModel;
-using System.Data;
-using System.Linq;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using SimpleBase;
 
 namespace sl_Hive
 {
@@ -14,23 +9,23 @@ namespace sl_Hive
     {
         private class EncryptedMemoObject
         {
-            public byte[]? From { get; set; } = null;
-            public byte[]? To { get; set; } = null;
-            public long Check { get; set; } = 0;
-            public ulong Nonce { get; set; } = 0;
-            public byte[]? Encrypted { get; set; } = null;
+            public byte[]? From { get; init; }
+            public byte[]? To { get; init; }
+            public long Check { get; init; }
+            public ulong Nonce { get; init; }
+            public byte[]? Encrypted { get; init; }
 
-            public byte[] ToByteArray() {
+            public ReadOnlySpan<byte> ToSpan() {
                 if( From == null || To == null || Encrypted == null ) throw new Exception("Invalid object");
-                var variant = Memo.WriteVarInt32(Encrypted.Length);
-                if( variant == null ) throw new Exception("Unable to generate variant during encoding");
-                var result = From.Concat(To)
-                    .Concat(BitConverter.GetBytes(Nonce))
-                    .Concat(BitConverter.GetBytes(Check).Take(4))
-                    .Concat(variant)
-                    .Concat(Encrypted).ToArray();
 
-                return result;
+                return Buffers.From(
+                    From,
+                    To,
+                    BitConverter.GetBytes(Nonce),
+                    BitConverter.GetBytes(Check).AsSpan()[..4],
+                    EncodeVarInt32(Encrypted.Length),
+                    Encrypted
+                );
             }
         }
 
@@ -45,54 +40,53 @@ namespace sl_Hive
         }
 
         public string Encode(string memo, string publicKey, string privateKey) {
-            if( memo == null || memo.Length == 0 ) throw new ArgumentException("Invalid memo");
-            if( publicKey == null || publicKey.Length == 0 || !publicKey.StartsWith(AddressPrefix) ) throw new ArgumentException("Invalid public key");
-            if( privateKey == null || privateKey.Length == 0 ) throw new ArgumentException("Invalid private key");
+            if( string.IsNullOrEmpty(memo) ) throw new ArgumentException("Invalid memo");
+            if( string.IsNullOrEmpty(publicKey) || !publicKey.StartsWith(AddressPrefix) ) throw new ArgumentException("Invalid public key");
+            if( string.IsNullOrEmpty(privateKey) ) throw new ArgumentException("Invalid private key");
 
-            if( memo.StartsWith(MemoPrefix) ) {
-                memo = memo.Substring(MemoPrefix.Length);
-            }
+            return Encode(
+                memo.StartsWith(MemoPrefix) ? memo[MemoPrefix.Length..] : memo,
+                PublicKey.From(publicKey),
+                PrivateKey.From(privateKey)
+            );
+        }
 
-            var pubKey = PublicKey.From(publicKey);
-            var privKey = PrivateKey.From(privateKey);
-            if( pubKey == null || privKey == null ) throw new Exception("Unable to load public or private keys");
+        private string Encode(string memo, PublicKey publicKey, PrivateKey privateKey) {
+            if( publicKey == null || privateKey == null ) throw new Exception("Unable to load public or private keys");
 
 
             var bytes = Encoding.UTF8.GetBytes(memo);
             if( bytes == null ) throw new Exception("Unable to encode message buffer");
-            var memoBuffer = WriteVarInt32(bytes.Length)?.Concat(bytes).ToArray();
-            if( memoBuffer == null ) throw new Exception("Error creating memo buffer");
+            
+            var memoBuffer = Buffers.From(
+                EncodeVarInt32(bytes.Length),
+                bytes
+            );
 
             var nonce = Convert.ToUInt64(109219769622765344); //UniqueNonce());
+            
+            Span<byte> encryptionKey = SHA512.HashData(Buffers.From(
+                BitConverter.GetBytes(nonce),
+                privateKey.GetSharedSecret(publicKey)
+            ));
+            var iv = encryptionKey.Slice(32, 16);
+            var key = encryptionKey[..32];
 
-            var buffer = BitConverter.GetBytes(nonce);
-            if( buffer == null ) throw new Exception("Error getting nonce");
-            buffer = buffer.Concat(privKey.GetSharedSecret(pubKey))
-                .ToArray();
+            
+            // TODO: Should this be int or maybe uint?
+            var checkValue = BitConverter.ToInt32(SHA256.HashData(encryptionKey), 0);
 
-            var encryptionKey = SHA512.HashData(buffer);
-
-            var iv = encryptionKey.Skip(32)
-                .Take(16)
-                .ToArray();
-            var key = encryptionKey.Take(32)
-                .ToArray();
-
-            var checkValue = BitConverter.ToInt32(SHA256.HashData(encryptionKey)
-                .Take(4)
-                .ToArray());
-
-            var encrypted = Encrypt(memoBuffer, iv, key);
+            var encrypted = Encrypt(memoBuffer, iv.ToArray(), key.ToArray());
 
             var encryptedMemo = new EncryptedMemoObject() {
                 Check = checkValue,
                 Nonce = nonce,
                 Encrypted = encrypted,
-                From = PublicKey.From(privKey.GetPublicKey()).Key,
-                To = pubKey.Key
-            }.ToByteArray();
+                From = PublicKey.From(privateKey.GetPublicKey()).Key,
+                To = publicKey.Key
+            }.ToSpan();
 
-            return $"{MemoPrefix}{Base58.Encode(encryptedMemo)}";
+            return $"{MemoPrefix}{Base58.Bitcoin.Encode(encryptedMemo)}";
         }
 
         private static Aes CreateCrypto(byte[] iv, byte[] key) {
@@ -103,7 +97,7 @@ namespace sl_Hive
             return result;
         }
 
-        private static byte[] Encrypt(byte[] buffer, byte[] iv, byte[] key) {
+        private static byte[] Encrypt(ReadOnlySpan<byte> buffer, byte[] iv, byte[] key) {
             using var crypto = CreateCrypto(iv, key);
             using var encryptor = crypto.CreateEncryptor();
             using var memory = new MemoryStream();
@@ -129,7 +123,7 @@ namespace sl_Hive
             _ => 5
         };
 
-        private static byte[] WriteVarInt32(uint value) {
+        private static byte[] EncodeVarInt32(uint value) {
             // ref: https://github.com/protobufjs/bytebuffer.js/blob/master/src/types/varints/varint32.js
 
             var result = new byte[CalculateVarInt32(value)];
@@ -145,7 +139,7 @@ namespace sl_Hive
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static byte[] WriteVarInt32(int value) => WriteVarInt32(unchecked((uint)value));
+        private static byte[] EncodeVarInt32(int value) => EncodeVarInt32(unchecked((uint)value));
 
         private static byte[] UniqueEntrophy = RandomNumberGenerator.GetBytes(2);
 

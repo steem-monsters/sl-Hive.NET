@@ -7,6 +7,6 @@ namespace sl_Hive.Requests
     public class AccountsRequest : HiveJsonRequest
     {
         [JsonProperty("params")]
-        public IReadOnlyList<IReadOnlyList<string>> Accounts { get; set; }
+        public IReadOnlyList<IReadOnlyList<string>> Accounts { get; init; } = default!;
     }
 }
