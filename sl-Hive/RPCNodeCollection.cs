@@ -1,17 +1,10 @@
-﻿namespace sl_Hive
+﻿namespace sl_Hive;
+
+public class RPCNodeCollection
 {
-    public class RPCNodeCollection
-    {
-        public IEnumerable<RPCNode> nodes = new List<RPCNode>() { 
-            new RPCNode() { 
-                Url = "https://hived.splinterlands.com" 
-            },
-            new RPCNode() {
-                Url = "https://api.hive.blog"
-            },
-            new RPCNode() {
-                Url = "https://anyx.io"
-            }
-        };
-    }
+	public readonly IReadOnlyList<RPCNode> Nodes = new[] {
+		new RPCNode("https://hived.splinterlands.com"),
+		new RPCNode("https://api.hive.blog"),
+		new RPCNode("https://anyx.io")
+	};
 }

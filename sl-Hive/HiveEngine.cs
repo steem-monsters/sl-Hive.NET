@@ -14,7 +14,7 @@ namespace sl_Hive
         public HiveEngine()
         {
             httpClient = new HttpClient();
-            activeNode = RPCNodeCollection.nodes.Count() > 0 ? 0 : -1;
+            activeNode = RPCNodeCollection.Nodes.Count() > 0 ? 0 : -1;
         }
 
 
@@ -26,7 +26,7 @@ namespace sl_Hive
                 var result = "";
                 string strTest = JsonConvert.SerializeObject(request);
                 using (var rawResponse = await httpClient.PostAsync(
-                    RPCNodeCollection.nodes.ToList()[activeNode].Url, 
+                    RPCNodeCollection.Nodes.ToList()[activeNode].Url, 
                     new StringContent(strTest, 
                     Encoding.UTF8, 
                     "application/json")
@@ -48,7 +48,7 @@ namespace sl_Hive
 
         private void RotateActiveNode()
         {
-            activeNode = activeNode < RPCNodeCollection.nodes.Count() ? activeNode + 1 : 0;
+            activeNode = activeNode < RPCNodeCollection.Nodes.Count() ? activeNode + 1 : 0;
         }
     }
 }
