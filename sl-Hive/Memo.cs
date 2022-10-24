@@ -31,8 +31,8 @@ namespace sl_Hive
             }
         }
 
-        public string MemoPrefix { get; set; } = "#";
-        public string AddressPrefix { get; set; } = "STM";
+        public string MemoPrefix { get; } = "#";
+        public string AddressPrefix { get; } = "STM";
 
         public Memo() { }
 
@@ -59,14 +59,14 @@ namespace sl_Hive
 
             var bytes = Encoding.UTF8.GetBytes(memo);
             if( bytes == null ) throw new Exception("Unable to encode message buffer");
-            
+
             var memoBuffer = Buffers.From(
                 EncodeVarInt32(bytes.Length),
                 bytes
             );
 
             var nonce = Convert.ToUInt64(109219769622765344); //UniqueNonce());
-            
+
             Span<byte> encryptionKey = SHA512.HashData(Buffers.From(
                 BitConverter.GetBytes(nonce),
                 privateKey.GetSharedSecret(publicKey)
@@ -74,7 +74,7 @@ namespace sl_Hive
             var iv = encryptionKey.Slice(32, 16);
             var key = encryptionKey[..32];
 
-            
+
             // TODO: Should this be int or maybe uint?
             // TODO: Explicit network byte order.
             var checkValue = BitConverter.ToInt32(SHA256.HashData(encryptionKey), 0);

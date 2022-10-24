@@ -3,14 +3,14 @@ namespace sl_Hive;
 // Generated
 public static class Buffers
 {
-    public static Span<byte> From(in ReadOnlySpan<byte> a, in ReadOnlySpan<byte> b) {
+    public static ReadOnlySpan<byte> From(in ReadOnlySpan<byte> a, in ReadOnlySpan<byte> b) {
         Span<byte> result = new byte[a.Length + b.Length];
         a.CopyTo(result);
         b.CopyTo(result[a.Length..]);
         return result;
     }
 
-    public static Span<byte> From(in ReadOnlySpan<byte> a, in ReadOnlySpan<byte> b, in ReadOnlySpan<byte> c) {
+    public static ReadOnlySpan<byte> From(in ReadOnlySpan<byte> a, in ReadOnlySpan<byte> b, in ReadOnlySpan<byte> c) {
         Span<byte> result = new byte[a.Length + b.Length + c.Length];
         a.CopyTo(result);
         b.CopyTo(result[a.Length..]);
@@ -18,7 +18,7 @@ public static class Buffers
         return result;
     }
 
-    public static Span<byte> From(in ReadOnlySpan<byte> a, in ReadOnlySpan<byte> b, in ReadOnlySpan<byte> c, in ReadOnlySpan<byte> d) {
+    public static ReadOnlySpan<byte> From(in ReadOnlySpan<byte> a, in ReadOnlySpan<byte> b, in ReadOnlySpan<byte> c, in ReadOnlySpan<byte> d) {
         Span<byte> result = new byte[a.Length + b.Length + c.Length + d.Length];
         a.CopyTo(result);
         b.CopyTo(result[a.Length..]);
@@ -27,7 +27,7 @@ public static class Buffers
         return result;
     }
 
-    public static Span<byte> From(in ReadOnlySpan<byte> a, in ReadOnlySpan<byte> b, in ReadOnlySpan<byte> c, in ReadOnlySpan<byte> d, in ReadOnlySpan<byte> e) {
+    public static ReadOnlySpan<byte> From(in ReadOnlySpan<byte> a, in ReadOnlySpan<byte> b, in ReadOnlySpan<byte> c, in ReadOnlySpan<byte> d, in ReadOnlySpan<byte> e) {
         Span<byte> result = new byte[a.Length + b.Length + c.Length + d.Length + e.Length];
         a.CopyTo(result);
         b.CopyTo(result[a.Length..]);
@@ -37,7 +37,7 @@ public static class Buffers
         return result;
     }
 
-    public static Span<byte> From(in ReadOnlySpan<byte> a, in ReadOnlySpan<byte> b, in ReadOnlySpan<byte> c, in ReadOnlySpan<byte> d, in ReadOnlySpan<byte> e, in ReadOnlySpan<byte> f) {
+    public static ReadOnlySpan<byte> From(in ReadOnlySpan<byte> a, in ReadOnlySpan<byte> b, in ReadOnlySpan<byte> c, in ReadOnlySpan<byte> d, in ReadOnlySpan<byte> e, in ReadOnlySpan<byte> f) {
         Span<byte> result = new byte[a.Length + b.Length + c.Length + d.Length + e.Length + f.Length];
         a.CopyTo(result);
         b.CopyTo(result[a.Length..]);
