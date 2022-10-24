@@ -7,7 +7,7 @@ namespace sl_Hive
     {
         public static int CHECKSUM_SIZE_BYTES = 4;
         public static byte[] NETWORK_ID = Convert.FromHexString("80");
-        public static Byte[] DecodePrivateWif(string encodedKey)
+        public static byte[] DecodePrivateWif(string encodedKey)
         {
             var s = Base58.Decode(encodedKey);
 
@@ -49,12 +49,12 @@ namespace sl_Hive
             return source.Skip(cutCount).ToArray();
         }
 
-        private static byte[] Checksum(Byte[] hash)
+        private static byte[] Checksum(byte[] hash)
         {            
             return SHA256.HashData(SHA256.HashData((hash)));
         }
 
-        private static bool ValidateChecksum(Byte[] s, Byte[] checkSum, int byteLength = 4)
+        private static bool ValidateChecksum(byte[] s, byte[] checkSum, int byteLength = 4)
         {
             for (var i = 0; i < byteLength; i++)
             {
