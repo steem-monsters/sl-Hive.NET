@@ -33,8 +33,8 @@ namespace sl_Hive.Test
         public async Task GetAccounts() {
             var response = await hive.QueryBlockchain<Accounts[]>(
                 new AccountsRequest {
-                    Accounts = new [] {
-                        new [] {
+                    Accounts = new[] {
+                        new[] {
                             "farpetrad", "ahsoka", "cryptomancer", "antiosh"
                         }
                     }
@@ -57,7 +57,12 @@ namespace sl_Hive.Test
         [TestMethod]
         public void MemoEncode() {
             var memo = new Memo();
-            var encodedMemo = memo.Encode("#testingtesting", "STM8m5UgaFAAYQRuaNejYdS8FVLVp9Ss3K1qAVk5de6F8s3HnVbvA", "5JdeC9P7Pbd1uGdFVEsJ41EkEnADbbHGq6p1BwFxm6txNBsQnsw");
+            var encodedMemo = memo.Encode(
+                "#testingtesting",
+                "STM8m5UgaFAAYQRuaNejYdS8FVLVp9Ss3K1qAVk5de6F8s3HnVbvA",
+                "5JdeC9P7Pbd1uGdFVEsJ41EkEnADbbHGq6p1BwFxm6txNBsQnsw",
+                BitConverter.GetBytes(Convert.ToUInt64(109219769622765344))
+            );
         }
     }
 }

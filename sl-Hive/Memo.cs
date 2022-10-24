@@ -41,7 +41,7 @@ namespace sl_Hive
             AddressPrefix = addressPrefix;
         }
 
-        public string Encode(string memo, string publicKey, string privateKey) {
+        public string Encode(string memo, string publicKey, string privateKey, ReadOnlySpan<byte> nonce = default) {
             if( string.IsNullOrEmpty(memo) ) throw new ArgumentException("Invalid memo");
             if( string.IsNullOrEmpty(publicKey) || !publicKey.StartsWith(AddressPrefix) ) throw new ArgumentException("Invalid public key");
             if( string.IsNullOrEmpty(privateKey) ) throw new ArgumentException("Invalid private key");
@@ -49,14 +49,13 @@ namespace sl_Hive
             return Encode(
                 memo.StartsWith(MemoPrefix) ? memo[MemoPrefix.Length..] : memo,
                 PublicKey.From(publicKey),
-                PrivateKey.From(privateKey)
+                PrivateKey.From(privateKey),
+                nonce.Length == 0 ? UniqueNonce() : nonce
             );
         }
 
-        private string Encode(string memo, PublicKey publicKey, PrivateKey privateKey, ReadOnlySpan<byte> nonce = default) {
+        private string Encode(string memo, PublicKey publicKey, PrivateKey privateKey, ReadOnlySpan<byte> nonce) {
             if( publicKey == null || privateKey == null ) throw new Exception("Unable to load public or private keys");
-
-            var actualNonce = nonce.Length == 0 ? UniqueNonce() : nonce;
 
 
             var bytes = Encoding.UTF8.GetBytes(memo);
@@ -67,10 +66,8 @@ namespace sl_Hive
                 bytes
             );
 
-            //var nonce = Convert.ToUInt64(109219769622765344); //UniqueNonce());
-
             Span<byte> encryptionKey = SHA512.HashData(Buffers.From(
-                actualNonce,
+                nonce,
                 privateKey.GetSharedSecret(publicKey)
             ));
             var iv = encryptionKey.Slice(32, 16);
@@ -85,7 +82,7 @@ namespace sl_Hive
 
             var encryptedMemo = new EncryptedMemoObject {
                 Check = checkValue,
-                Nonce = actualNonce,
+                Nonce = nonce,
                 Encrypted = encrypted,
                 From = PublicKey.From(privateKey.GetPublicKey()).Key,
                 To = publicKey.Key
@@ -110,9 +107,7 @@ namespace sl_Hive
                 swEncrypt.Write(Encoding.UTF8.GetString(buffer));
             }
 
-            return memory.TryGetBuffer(out var result)
-                ? result.AsSpan()
-                : memory.ToArray().AsSpan();
+            return memory.AsReadOnlySpan();
         }
 
 
