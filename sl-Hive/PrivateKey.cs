@@ -6,68 +6,66 @@ using System.Security.Cryptography;
 
 namespace sl_Hive
 {
-    public class PrivateKey
-    {
-        public static PrivateKey From(string key)
-        {
-            var wif = KeyUtils.DecodePrivateWif(key);
+	public class PrivateKey
+	{
+		public static PrivateKey From(string key) {
+			var wif = KeyUtils.DecodePrivateWif(key);
 
-            var networkId = Convert.FromHexString("80");
-            var buffered = networkId.Concat(wif).ToArray();
+			var networkId = Convert.FromHexString("80");
+			var buffered = networkId.Concat(wif).ToArray();
 
-            var decodedWif = KeyUtils.EncodePrivateWif(buffered);
-            var pkey = new PrivateKey(wif);
+			var decodedWif = KeyUtils.EncodePrivateWif(buffered);
+			var pkey = new PrivateKey(wif);
 
 
-            return pkey;
-        }
+			return pkey;
+		}
 
-        public readonly byte[] Bytes;
-        public BigInteger D { get; set; } = 0;
+		public readonly byte[] Bytes;
+		public BigInteger D { get; set; } = 0;
 
-        private PrivateKey(byte[] wif)
-        {
-            Bytes = wif;
-            D = new BigInteger(wif, isBigEndian: true, isUnsigned: true);
-        }
+		private PrivateKey(byte[] wif) {
+			Bytes = wif;
+			D = new BigInteger(wif, isBigEndian: true, isUnsigned: true);
+		}
 
-        public byte[] GetSharedSecret(PublicKey publicKey)
-        {
-            if (publicKey == null || publicKey.Q == null) throw new Exception("Public key must be valid");
-            var KB = publicKey.Q.GetEncoded(false);
+		public byte[] GetSharedSecret(PublicKey publicKey) {
+			if( publicKey == null || publicKey.Q == null ) throw new Exception("Public key must be valid");
+			var KB = publicKey.Q.GetEncoded(false);
 
-            var curve = SecNamedCurves.GetByName("secp256k1");
-            var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H, curve.GetSeed());
+			var curve = SecNamedCurves.GetByName("secp256k1");
+			var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H, curve.GetSeed());
 
-            // need a curve in the correct coordinate system!
-            var c = domain.Curve.Configure().SetCoordinateSystem(Org.BouncyCastle.Math.EC.ECCurve.COORD_AFFINE).Create();
+			// need a curve in the correct coordinate system!
+			var c = domain.Curve.Configure().SetCoordinateSystem(Org.BouncyCastle.Math.EC.ECCurve.COORD_AFFINE).Create();
 
-            var lower = KB.Skip(1)
-                          .Take(32)
-                          .ToArray();
-            var upper = KB.Skip(33)
-                          .ToArray();
-            // super important to signify that these are signed integers!
-            var KBP = c.CreatePoint(
-                new Org.BouncyCastle.Math.BigInteger(1, lower),
-                new Org.BouncyCastle.Math.BigInteger(1, upper));
+			var lower = KB.Skip(1)
+				.Take(32)
+				.ToArray();
+			var upper = KB.Skip(33)
+				.ToArray();
+			// super important to signify that these are signed integers!
+			var KBP = c.CreatePoint(
+				new Org.BouncyCastle.Math.BigInteger(1, lower),
+				new Org.BouncyCastle.Math.BigInteger(1, upper));
 
-            var r = D.ToByteArray().Take(32).Reverse().ToArray();
+			var r = D.ToByteArray().Take(32).Reverse().ToArray();
 
-            var P = KBP.Multiply(new Org.BouncyCastle.Math.BigInteger(1, r));
-            var S = P.AffineXCoord.ToBigInteger().ToByteArrayUnsigned();
+			var P = KBP.Multiply(new Org.BouncyCastle.Math.BigInteger(1, r));
+			var S = P.AffineXCoord.ToBigInteger().ToByteArrayUnsigned();
 
-            using (var sha512 = SHA512.Create())
-            {
-                return sha512.ComputeHash(S);
-            }
-        }
+			Span<byte> buffer = stackalloc byte[64];
+			if( SHA512.TryHashData(S, buffer, out var written) ) {
+				return (written != buffer.Length ? buffer[..written] : buffer).ToArray();
+			}
 
-        public string GetPublicKey()
-        {
-            var bytes = Secp256K1Manager.GetPublicKey(Bytes, true);
-            var key = KeyUtils.EncodePublicWif(bytes);
-            return key;
-        }
-    }
+			throw new InvalidOperationException("Unable to hash data");
+		}
+
+		public string GetPublicKey() {
+			var bytes = Secp256K1Manager.GetPublicKey(Bytes, true);
+			var key = KeyUtils.EncodePublicWif(bytes);
+			return key;
+		}
+	}
 }
