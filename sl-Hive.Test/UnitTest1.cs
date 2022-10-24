@@ -61,6 +61,8 @@ namespace sl_Hive.Test
                 "5JdeC9P7Pbd1uGdFVEsJ41EkEnADbbHGq6p1BwFxm6txNBsQnsw",
                 BitConverter.GetBytes(Convert.ToUInt64(109219769622765344))
             );
+
+            Assert.IsTrue("#K55WaPFbgNW8w8UiPzFGRejmMLZH3CA6guETaVLS7fUGgYhSwWTXjQ26ozhA6zFtG339Tsjw5AXqce8v4HCsYZ9kFuiPKJ4UMujGLTXckCyYsEW1wKcec9Zz4fkvshNE3" == encodedMemo);
         }
     }
 }
