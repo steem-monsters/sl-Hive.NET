@@ -1,6 +1,4 @@
-﻿using sl_Hive.Attributes;
-
-namespace sl_Hive.Models
+﻿namespace sl_Hive.Models
 {
     public class HiveDynamicGlobalProperties
     {
@@ -38,7 +36,7 @@ namespace sl_Hive.Models
         public DateTime? Next_Maintenance_Time { get; set; } = null;
         public DateTime? Last_Budget_Time { get; set; } = null;
         public DateTime? Next_Daily_Maintenance_Time { get; set; } = null;
-        public int Content_Reward_Percent {get;set;} = 0;
+        public int Content_Reward_Percent { get; set; } = 0;
         public int Vesting_Reward_Percent { get; set; } = 0;
         public int Proposal_Fund_Percent { get; set; } = 0;
         public TokenSupply? Dhf_Interval_Ledger { get; set; } = null;
