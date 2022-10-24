@@ -9,19 +9,15 @@ namespace sl_Hive.Test
         private HiveEngine hive = new HiveEngine(new HttpClient(), RPCNodeCollection.DefaultNodes);
 
         [TestMethod]
-        public void ReadGlobalBlockchainProperties() {
-            var task = hive.QueryBlockchain<HiveDynamicGlobalProperties>(new HiveDynamicGlobalPropertiesRequest());
-            Task.WaitAll(task);
-
-            Assert.IsNotNull(task.Result);
-            var response = task.Result;
-
+        public async Task ReadGlobalBlockchainProperties() {
+            var response = await hive.QueryBlockchain<HiveDynamicGlobalProperties>(HiveDynamicGlobalPropertiesRequest.Instance);
+            Assert.IsNotNull(response);
             Assert.IsNotNull(response.Result);
         }
 
         [TestMethod]
         public async Task ReadBlock() {
-            var response = await hive.QueryBlockchain<HiveDynamicGlobalProperties>(new HiveDynamicGlobalPropertiesRequest());
+            var response = await hive.QueryBlockchain<HiveDynamicGlobalProperties>(HiveDynamicGlobalPropertiesRequest.Instance);
             Assert.IsNotNull(response.Result);
 
             var block = await hive.QueryBlockchain<Block>(new BlockRequest { BlockNumber = new[] { response.Result.Head_Block_Number } });

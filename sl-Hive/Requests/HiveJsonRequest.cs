@@ -11,7 +11,7 @@ namespace sl_Hive.Requests
         public int Id { get; set; } = 1;
 
         [JsonPropertyName("jsonrpc")]
-        public string Jsonrpc { get; set; } = "2.0";
+        public string JsonRpc { get; set; } = "2.0";
 
         [JsonPropertyName("method")]
         public virtual string Method => GetCurrentRpcMethod();
