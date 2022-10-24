@@ -1,6 +1,9 @@
-using Newtonsoft.Json;
+using Cryptography.ECDSA;
+using Org.BouncyCastle.Asn1.Sec;
+using Org.BouncyCastle.Crypto.Parameters;
 using sl_Hive.Models;
 using sl_Hive.Requests;
+using System.Security.Cryptography;
 
 namespace sl_Hive.Test
 {
@@ -41,12 +44,13 @@ namespace sl_Hive.Test
         public void GetAccounts()
         {
             var task = hive.QueryBlockchain<Accounts[]>(
-                new AccountsRequest() {  
-                    Accounts = new List<List<string>>() { 
-                        new List<string>() { 
-                            "farpetrad", "ahsoka", "cryptomancer", "antiosh" 
-                        } 
-                    } 
+                new AccountsRequest()
+                {
+                    Accounts = new List<List<string>>() {
+                        new List<string>() {
+                            "farpetrad", "ahsoka", "cryptomancer", "antiosh"
+                        }
+                    }
                 }
             );
             Task.WaitAll(task);
@@ -70,6 +74,13 @@ namespace sl_Hive.Test
             Task.WaitAll(blockTask);
             Assert.IsNotNull(blockTask.Result);
             Assert.IsNotNull(blockTask.Result.Result);
+        }
+
+        [TestMethod]
+        public void MemoEncode()
+        {
+            var memo = new Memo();
+            var encodedMemo = memo.Encode("#testingtesting", "STM8m5UgaFAAYQRuaNejYdS8FVLVp9Ss3K1qAVk5de6F8s3HnVbvA", "5JdeC9P7Pbd1uGdFVEsJ41EkEnADbbHGq6p1BwFxm6txNBsQnsw");
         }
     }
 }

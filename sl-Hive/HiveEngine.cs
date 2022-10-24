@@ -38,8 +38,8 @@ namespace sl_Hive
 
                 var hiveResponse = JsonConvert.DeserializeObject<HiveJsonRPCResult<ResponseType>>(result);
                 return hiveResponse;
-            } 
-            catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 RotateActiveNode();
                 throw new Exception($"Unable to process request: {ex.Message}");
