@@ -167,8 +167,8 @@ namespace sl_Hive
             using var crypto = CreateCrypto(iv, key);
             using var encryptor = crypto.CreateEncryptor();
             using var memory = new MemoryStream();
-            using(var swEncrypt = new StreamWriter(new CryptoStream(memory, encryptor, CryptoStreamMode.Write, false))) {
-                swEncrypt.Write(Encoding.UTF8.GetString(buffer));
+            using(var swEncrypt = new BinaryWriter(new CryptoStream(memory, encryptor, CryptoStreamMode.Write, false))) {
+                swEncrypt.Write(buffer);
             }
 
             return memory.AsReadOnlySpan();
@@ -176,13 +176,17 @@ namespace sl_Hive
 
         private static string Decrypt(ReadOnlySpan<byte> buffer, byte[] iv, byte[] key)
         {
+            var text = "";
             using var crypto = CreateCrypto(iv, key);
             using var encryptor = crypto.CreateDecryptor();
             using var memory = new MemoryStream(buffer.ToArray());
-            using (var swEncrypt = new StreamReader(new CryptoStream(memory, encryptor, CryptoStreamMode.Read, false)))
+            using (var swEncrypt = new BinaryReader(new CryptoStream(memory, encryptor, CryptoStreamMode.Read, false)))
             {
-                return swEncrypt.ReadToEnd();
+                swEncrypt.ReadByte();   // clear the stupid eos bit
+                var bufferResult = swEncrypt.ReadBytes(buffer.Length);
+                text = Encoding.UTF8.GetString(bufferResult);
             }
+            return text;
         }
 
 

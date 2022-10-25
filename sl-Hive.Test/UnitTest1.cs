@@ -57,11 +57,11 @@ namespace sl_Hive.Test
 
         [TestMethod]
         public void MemoEncode() {
-            var testMemo = "#testingtesting";
+            var testMemo = "testingtesting";
 
             var memo = new Memo();
             var encodedMemo = memo.Encode(
-                testMemo,
+                $"{'#'}{testMemo}",
                 PublicKey,
                 PrivKey,
                 BitConverter.GetBytes(Convert.ToUInt64(109219769622765344))
