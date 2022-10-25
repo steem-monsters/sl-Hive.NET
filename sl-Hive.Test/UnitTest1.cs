@@ -7,6 +7,9 @@ namespace sl_Hive.Test
     public class UnitTest1
     {
         private HiveEngine hive = new HiveEngine(new HttpClient(), RPCNodeCollection.DefaultNodes);
+        const string PrivKey = "5JdeC9P7Pbd1uGdFVEsJ41EkEnADbbHGq6p1BwFxm6txNBsQnsw";
+        const string PublicKey = "STM8m5UgaFAAYQRuaNejYdS8FVLVp9Ss3K1qAVk5de6F8s3HnVbvA";
+
 
         [TestMethod]
         public async Task ReadGlobalBlockchainProperties() {
@@ -54,15 +57,21 @@ namespace sl_Hive.Test
 
         [TestMethod]
         public void MemoEncode() {
+            var testMemo = "#testingtesting";
+
             var memo = new Memo();
             var encodedMemo = memo.Encode(
-                "#testingtesting",
-                "STM8m5UgaFAAYQRuaNejYdS8FVLVp9Ss3K1qAVk5de6F8s3HnVbvA",
-                "5JdeC9P7Pbd1uGdFVEsJ41EkEnADbbHGq6p1BwFxm6txNBsQnsw",
+                testMemo,
+                PublicKey,
+                PrivKey,
                 BitConverter.GetBytes(Convert.ToUInt64(109219769622765344))
             );
 
             Assert.IsTrue("#K55WaPFbgNW8w8UiPzFGRejmMLZH3CA6guETaVLS7fUGgYhSwWTXjQ26ozhA6zFtG339Tsjw5AXqce8v4HCsYZ9kFuiPKJ4UMujGLTXckCyYsEW1wKcec9Zz4fkvshNE3" == encodedMemo);
+
+            var decodedMemo = memo.Decode(encodedMemo, PrivKey);
+
+            Assert.IsTrue(testMemo == decodedMemo);
         }
     }
 }

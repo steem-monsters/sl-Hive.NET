@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using Org.BouncyCastle.Utilities;
 using SimpleBase;
 
 namespace sl_Hive
@@ -40,6 +41,68 @@ namespace sl_Hive
         public Memo(string memoPrefix, string addressPrefix) {
             MemoPrefix = memoPrefix;
             AddressPrefix = addressPrefix;
+        }
+
+        public string Decode(string memo, string privateKey)
+        {
+            if (string.IsNullOrEmpty(memo)) throw new ArgumentException("Invalid memo");
+            if (string.IsNullOrEmpty(privateKey)) throw new ArgumentException("Invalid private key");
+
+            return Decode(
+                memo.StartsWith(MemoPrefix) ? memo[MemoPrefix.Length..] : memo,
+                PrivateKey.From(privateKey)
+            );
+        }
+
+        private string Decode(string memo, PrivateKey privateKey)
+        {            
+            var bytes = Base58.Bitcoin.Decode(memo);
+
+            var x = bytes.ToArray();
+            
+            var from = bytes[..33];
+            bytes = bytes.Slice(33);
+
+
+            var fromKey = PublicKey.From(from);
+
+            var to = bytes[..33];
+            var toKey = PublicKey.From(to);
+            bytes = bytes.Slice(33);
+
+            var nonce = bytes[..8];
+            var nonceValue = BitConverter.ToUInt64(nonce);
+            bytes = bytes.Slice(8);
+
+            var check = bytes[..4];
+            var checkValue = BitConverter.ToUInt32(check);
+            bytes = bytes.Slice(4);
+            
+            var messageLength = DecodeVarInt32(bytes[..1]);
+            bytes = bytes.Slice(1);
+            if (bytes.Length != messageLength) throw new Exception("Invalid encoded message");
+
+            var pubKey = PublicKey.From(privateKey.GetPublicKey());
+            var otherPub = pubKey.Key.SequenceEqual(fromKey.Key) ? toKey : fromKey;
+
+
+            return Decrypt(bytes, privateKey, otherPub, checkValue, nonce);
+        }
+
+        private static string Decrypt(ReadOnlySpan<byte> message, PrivateKey privateKey, PublicKey publicKey, uint checksum, ReadOnlySpan<byte> nonce)
+        {
+            if (message.Length == 0) throw new Exception("Invalid message");
+            Span<byte> encryptionKey = SHA512.HashData(Buffers.From(
+               nonce,
+               privateKey.GetSharedSecret(publicKey)
+           ));
+            var iv = encryptionKey.Slice(32, 16);
+            var key = encryptionKey[..32];
+
+            var checkValue = BitConverter.ToInt32(SHA256.HashData(encryptionKey), 0);
+            if (checksum != checkValue) throw new Exception("Invalid checksum, unable to decrypt");
+
+            return Decrypt(message, iv.ToArray(), key.ToArray());
         }
 
         public string Encode(string memo, string publicKey, string privateKey, ReadOnlySpan<byte> nonce = default) {
@@ -111,6 +174,17 @@ namespace sl_Hive
             return memory.AsReadOnlySpan();
         }
 
+        private static string Decrypt(ReadOnlySpan<byte> buffer, byte[] iv, byte[] key)
+        {
+            using var crypto = CreateCrypto(iv, key);
+            using var encryptor = crypto.CreateDecryptor();
+            using var memory = new MemoryStream(buffer.ToArray());
+            using (var swEncrypt = new StreamReader(new CryptoStream(memory, encryptor, CryptoStreamMode.Read, false)))
+            {
+                return swEncrypt.ReadToEnd();
+            }
+        }
+
 
         private string Decrypt(byte[] buffer, byte[] iv, byte[] key) {
             using var crypto = CreateCrypto(iv, key);
@@ -141,6 +215,26 @@ namespace sl_Hive
             result[i++] = (byte)value;
 
             return result;
+        }
+
+        private static int DecodeVarInt32(ReadOnlySpan<byte> buffer)
+        {
+            var i = 0;
+            var c = 0;
+            var b = 0;
+            var value = 0;
+            do
+            {
+                if (i > buffer.Length) throw new Exception("Unable to decode VarInt32");
+                b = buffer[i++];
+                if( c < 5)
+                {
+                    value |= (b & 0x7f) << (7 * c);
+                }
+                ++c;
+            } while ((b & 0x80) != 0);
+            value |= 0;
+            return value;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
