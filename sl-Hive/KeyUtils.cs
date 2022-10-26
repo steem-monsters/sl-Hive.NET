@@ -1,105 +1,77 @@
-﻿using Cryptography.ECDSA;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
+using Cryptography.ECDSA;
+using Base58 = SimpleBase.Base58;
+
 
 namespace sl_Hive
 {
     public class KeyUtils
     {
         public static int CHECKSUM_SIZE_BYTES = 4;
-        public static byte[] NETWORK_ID = Convert.FromHexString("80");
-        public static Byte[] DecodePrivateWif(string encodedKey)
-        {
-            var s = Base58.Decode(encodedKey);
+        public static byte NETWORK_ID = 0x80;
 
-            var network = new byte[1];
-            Array.Copy(s, network, network.Length);
+        public static ReadOnlySpan<byte> DecodePrivateWif(string encodedKey) {
+            var data = Base58.Bitcoin.Decode(encodedKey);
 
-            if (!network.SequenceEqual(NETWORK_ID)) throw new Exception("Error private key network mismatch");
+            if( data[0] != NETWORK_ID ) throw new Exception("Error private key network mismatch");
 
-            var checkSum = s.Skip(s.Length - 4).ToArray();
+            var checkSum = data[^CHECKSUM_SIZE_BYTES..];
 
-            var key = CutLastBytes(s, 4);
-            var checksumVerify = Checksum(key).Take(4)
-                                              .ToArray();
-
-            if (!ValidateChecksum(s, checksumVerify, 4)) throw new Exception("Invalid checksum");
-            key = CutFirstBytes(key, 1);
-            return key;
-        }
-
-
-        public static string EncodePrivateWif(byte[] buffer)
-        {
-            var network = buffer.Take(1).ToArray();
-
-            if (!network.SequenceEqual(NETWORK_ID)) throw new Exception("Error private key network mismatch");
-
-            var checkSum = Checksum(buffer).Take(4).ToArray();
-
-            return Base58.Encode(buffer.Concat(checkSum).ToArray());
-        }
-
-        private static byte[] CutLastBytes(byte[] source, int cutCount)
-        {
-            return source.Take(source.Length - cutCount).ToArray();
-        }
-
-        private static byte[] CutFirstBytes(byte[] source, int cutCount)
-        {
-            return source.Skip(cutCount).ToArray();
-        }
-
-        private static byte[] Checksum(Byte[] hash)
-        {            
-            return SHA256.HashData(SHA256.HashData((hash)));
-        }
-
-        private static bool ValidateChecksum(Byte[] s, Byte[] checkSum, int byteLength = 4)
-        {
-            for (var i = 0; i < byteLength; i++)
-            {
-                if (checkSum[i] != s[s.Length - byteLength + i])
-                    return false;
+            var actualChecksum = DoubleHash(data[..^4])[..4];
+            if( !actualChecksum.SequenceEqual(checkSum) ) {
+                throw new Exception("Invalid checksum");
             }
-            return true;
+
+            return data[1..^4];
         }
 
-        public static DecodedPublicKey DecodePublicWif(string encodedKey)
-        {
-            var prefix = encodedKey.Substring(0, 3);
-            var slicedKey = encodedKey.Substring(3);
+        public static string EncodePrivateWif(ReadOnlySpan<byte> buffer) {
+            if( buffer[0] != NETWORK_ID ) throw new Exception("Error private key network mismatch");
+            var checkSum = DoubleHash(buffer)[..4];
+            return Base58.Bitcoin.Encode(Buffers.From(buffer, checkSum));
+        }
 
-            var buffer = Base58.Decode(slicedKey);
+        private static ReadOnlySpan<byte> DoubleHash(ReadOnlySpan<byte> data) => SHA256.HashData(SHA256.HashData(data));
 
-            var checkSum = buffer.Skip(buffer.Length - CHECKSUM_SIZE_BYTES).ToArray();
+        public static DecodedPublicKey DecodePublicWif(string encodedKey) {
+            var prefix = encodedKey[..3];
+            var slicedKey = encodedKey[3..];
 
-            var key = buffer.Take(buffer.Length - CHECKSUM_SIZE_BYTES).ToArray();
+            var buffer = Base58.Bitcoin.Decode(slicedKey);
 
-            var checkSumVerify = Ripemd160Manager.GetHash(key).Take(4).ToArray();
+            var checkSum = buffer[^CHECKSUM_SIZE_BYTES..];
+            var key = buffer[..^CHECKSUM_SIZE_BYTES];
 
-            if (!checkSum.SequenceEqual(checkSumVerify)) throw new Exception("Invalid checksum");
+            var actualChecksum = Ripemd160Manager.GetHash(key.ToArray()).AsSpan()[..4];
 
-            return new DecodedPublicKey() { Buffer = key, Prefix = prefix };
+            if( !checkSum.SequenceEqual(actualChecksum) ) throw new Exception("Invalid checksum");
+
+            return new DecodedPublicKey {
+                Buffer = key,
+                Prefix = prefix
+            };
         }
 
         /// <summary>
         /// Compute the public key from a private key Wif
         /// </summary>
         /// <param name="publicKey">32 byte private wif</param>
-        /// <param name="preFix">Prefix to add to key, Default STM for Hive</param>
+        /// <param name="prefix">Prefix to add to key, Default STM for Hive</param>
         /// <returns></returns>
-        public static string EncodePublicWif(byte[] publicKey, string preFix = "STM")
-        {
-            var checksum = Ripemd160Manager.GetHash(publicKey);
-            var expandedData = publicKey.Concat(checksum.Take(4)).ToArray();
-            var pubdata = Base58.Encode(expandedData);
-            return preFix + pubdata;
+        public static string EncodePublicWif(ReadOnlySpan<byte> publicKey, string prefix = "STM") {
+            var checksum = Ripemd160Manager.GetHash(publicKey.ToArray()).AsSpan();
+            var expandedData = Buffers.From(
+                publicKey,
+                checksum[..4]
+            );
+
+            return prefix + Base58.Bitcoin.Encode(expandedData);
         }
     }
 
-    public class DecodedPublicKey
+    public readonly ref struct DecodedPublicKey
     {
-        public byte[]? Buffer { get; set; }
-        public string? Prefix { get; set; }
+        public Span<byte> Buffer { get; init; }
+        public string? Prefix { get; init; }
     }
 }

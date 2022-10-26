@@ -1,7 +1,10 @@
-﻿namespace sl_Hive
+﻿namespace sl_Hive;
+
+public class RPCNode
 {
-    public class RPCNode
-    {
-        public string Url { get; set; } = string.Empty;
+    public RPCNode(string url) {
+        Url = url ?? throw new ArgumentNullException(nameof(url));
     }
+        
+    public string Url { get; }
 }

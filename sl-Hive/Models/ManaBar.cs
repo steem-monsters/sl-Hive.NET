@@ -3,6 +3,6 @@
     public class ManaBar
     {
         public string Current_Mana { get; set; } = string.Empty;
-        public Int64 Last_Update_Time { get; set; } = -1;
+        public long Last_Update_Time { get; set; } = -1;
     }
 }
