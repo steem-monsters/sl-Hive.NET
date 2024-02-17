@@ -37,7 +37,7 @@ public static class Buffers
         return result;
     }
 
-    public static ReadOnlySpan<byte> From(in ReadOnlySpan<byte> a, in ReadOnlySpan<byte> b, in ReadOnlySpan<byte> c, in ReadOnlySpan<byte> d, in ReadOnlySpan<byte> e, in ReadOnlySpan<byte> f) {
+    public static ReadOnlySpan<byte> From(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b, ReadOnlySpan<byte> c, ReadOnlySpan<byte> d, ReadOnlySpan<byte> e, ReadOnlySpan<byte> f) {
         Span<byte> result = new byte[a.Length + b.Length + c.Length + d.Length + e.Length + f.Length];
         a.CopyTo(result);
         b.CopyTo(result[a.Length..]);
