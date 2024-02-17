@@ -1,7 +1,4 @@
 ﻿using sl_Hive.Attributes;
-using sl_Hive.Models;
-using System.Buffers;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
@@ -18,15 +15,7 @@ namespace sl_Hive.Requests
 
     }
 
-    public class Transaction
-    {
-        public required ushort ref_block_num;
-        public required UInt32 ref_block_prefix;
-        public required DateTime expiration;
-        public required object[] operations;
-        public required object[] extensions = Array.Empty<object>();
-        public required string[] signatures = Array.Empty<string>();
-    }
+    
 
     
 
