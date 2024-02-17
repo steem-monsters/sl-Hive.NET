@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>sl_Hive</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -9,8 +9,8 @@
 
   <ItemGroup>
 <!--    <PackageReference Include="Cryptography.ECDSA.Secp256k1" Version="1.1.3" />-->
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.2.1" />
     <PackageReference Include="Cryptography.ECDSA.Secp256K1" Version="1.1.3" />
-    <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
     <PackageReference Include="SimpleBase" Version="3.1.0" />
   </ItemGroup>
 
