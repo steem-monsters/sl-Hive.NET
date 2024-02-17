@@ -198,22 +198,24 @@ namespace sl_Hive
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int CalculateVarInt32(uint value) => value switch {
-            < 1 << 7 => 1,
-            < 1 << 14 => 2,
-            < 1 << 21 => 3,
-            < 1 << 28 => 4,
-            _ => 5
-        };
+        private static int CalculateVarInt32(uint value) {
+            value = value >>> 0;
+            if (value < 1 << 7) return 1;
+            if (value < 1 << 14) return 2;
+            if (value < 1 << 21) return 3;
+            if (value < 1 << 28) return 4;
+            return 5;
+        }
 
         private static byte[] EncodeVarInt32(uint value) {
             // ref: https://github.com/protobufjs/bytebuffer.js/blob/master/src/types/varints/varint32.js
 
             var result = new byte[CalculateVarInt32(value)];
             var i = 0;
-            while( value > 0x7Fu ) {
-                result[i++] = (byte)(value | ~0x7Fu);
-                value >>= 7;
+            value >>>= 0;
+            while (value >= 0x80) {
+                result[i++] = (byte)((value & ~0x7Fu) | 0x80);
+                value >>>= 7;
             }
 
             result[i++] = (byte)value;
@@ -221,12 +223,12 @@ namespace sl_Hive
             return result;
         }
 
-        private static int DecodeVarInt32(ReadOnlySpan<byte> buffer)
+        private static uint DecodeVarInt32(ReadOnlySpan<byte> buffer)
         {
             var i = 0;
             var c = 0;
-            var b = 0;
-            var value = 0;
+            uint b = 0;
+            uint value = 0 >>> 0;
             do
             {
                 if (i > buffer.Length) throw new Exception("Unable to decode VarInt32");
