@@ -1,10 +1,16 @@
-﻿namespace sl_Hive.Models
+﻿using Cryptography.ECDSA;
+
+namespace sl_Hive.Models
 {
     public class HiveDynamicGlobalProperties
     {
         public long Id { get; set; } = -1;
-        public long Head_Block_Number { get; set; } = -1;
+        public uint Head_Block_Number { get; set; } = 0;
         public string Head_Block_Id { get; set; } = string.Empty;
+        public UInt32 Ref_Block_Prefix =>
+            Head_Block_Id == string.Empty
+            ? throw new Exception("Must provide a head block id")
+            : BitConverter.ToUInt32(Hex.HexToBytes(Head_Block_Id), 4);
         public DateTime Time { get; set; } = DateTime.Now;
         public string Current_Witness { get; set; } = string.Empty;
         public long Total_Pow { get; set; } = -1;
