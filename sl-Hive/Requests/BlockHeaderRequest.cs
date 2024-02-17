@@ -8,6 +8,6 @@ namespace sl_Hive.Requests
     public class BlockHeaderRequest : HiveJsonRequest
     {
         [JsonPropertyName("params")]
-        public IReadOnlyList<long> BlockNumber { get; set; }
+        public IReadOnlyList<ulong> BlockNumber { get; set; } = new List<ulong>();
     }
 }

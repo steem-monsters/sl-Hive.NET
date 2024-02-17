@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Nodes;
+﻿using sl_Hive.Requests;
+using System.Text.Json.Nodes;
 
 namespace sl_Hive.Models
 {
@@ -10,7 +11,7 @@ namespace sl_Hive.Models
         public string Transaction_Merkle_Root { get; set; }
         public IReadOnlyList<JsonNode> Extensions { get; set; }
         public string Witness_Signature { get; set; }
-        public IReadOnlyList<HiveTransaction> Transactions { get; set; }
+        public IReadOnlyList<Transaction> Transactions { get; set; }
         public string Block_Id { get; set; }
         public string Signing_Key { get; set; }
         public IReadOnlyList<string> Transaction_Ids { get; set; }
