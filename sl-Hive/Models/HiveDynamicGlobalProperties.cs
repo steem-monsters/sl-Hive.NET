@@ -2,13 +2,13 @@
 {
     public class HiveDynamicGlobalProperties
     {
-        public Int64 Id { get; set; } = -1;
-        public Int64 Head_Block_Number { get; set; } = -1;
+        public long Id { get; set; } = -1;
+        public long Head_Block_Number { get; set; } = -1;
         public string Head_Block_Id { get; set; } = string.Empty;
         public DateTime Time { get; set; } = DateTime.Now;
         public string Current_Witness { get; set; } = string.Empty;
-        public Int64 Total_Pow { get; set; } = -1;
-        public Int64 Num_Pow_Witnesses { get; set; } = -1;
+        public long Total_Pow { get; set; } = -1;
+        public long Num_Pow_Witnesses { get; set; } = -1;
         public TokenSupply? Virtual_Supply { get; set; } = null;
         public TokenSupply? Current_Supply { get; set; } = null;
         public TokenSupply? Init_Hbd_Supply { get; set; } = null;
@@ -23,10 +23,10 @@
         public int Hbd_Print_Rate { get; set; } = 0;
         public int Maximum_Block_Size { get; set; } = 0;
         public int Required_Actions_Partition_Percent { get; set; } = 0;
-        public Int64 Current_Aslot { get; set; } = -1;
+        public long Current_Aslot { get; set; } = -1;
         public string Recent_Slots_Filled { get; set; } = string.Empty;
         public int Participation_Count { get; set; } = 0;
-        public Int64 Last_Irreversible_Block_Num { get; set; } = -1;
+        public long Last_Irreversible_Block_Num { get; set; } = -1;
         public int Vote_Power_Reserve_Rate { get; set; } = 0;
         public int Delegation_Return_Period { get; set; } = 0;
         public int Reverse_Auction_Seconds { get; set; } = 0;

@@ -2,7 +2,7 @@
 {
     public class DelayedVote
     {
-        public DateTime? Time { get; set; } = null;
-        public Int64 Val { get; set; } = -1;
+        public DateTime? Time { get; set; }
+        public long Val { get; set; } = -1;
     }
 }

@@ -1,12 +1,12 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 using sl_Hive.Attributes;
 
 namespace sl_Hive.Requests
 {
-    [RPCMethod("condenser_api", "get_accounts")]
+    [RpcMethod("condenser_api", "get_accounts")]
     public class AccountsRequest : HiveJsonRequest
     {
-        [JsonProperty("params")]
-        public List<List<string>> Accounts { get; set; } = new List<List<string>>();
+        [JsonPropertyName("params")]
+        public IReadOnlyList<IReadOnlyList<string>> Accounts { get; init; } = default!;
     }
 }
