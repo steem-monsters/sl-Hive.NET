@@ -30,29 +30,33 @@ namespace sl_Hive
         }
 
 
-        private static readonly JsonSerializerOptions _options = new JsonSerializerOptions {
+        public static readonly JsonSerializerOptions _options = new JsonSerializerOptions {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             PropertyNameCaseInsensitive = true,
-            NumberHandling = JsonNumberHandling.AllowReadingFromString
+            NumberHandling = JsonNumberHandling.AllowReadingFromString,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            IncludeFields = true,
+
         };
 
         public async Task<HiveJsonRPCResult<TResponseType>> QueryBlockchain<TResponseType>(HiveJsonRequest request) {
             try {
-                var requestText = JsonSerializer.Serialize<object>(request, _options);
+                var jsonRequest = JsonSerializer.Serialize<object>(request, _options);
+
                 using var rawResponse = await _httpClient.PostAsync(
                     GetActiveNodeUrl(),
-                    new StringContent(requestText,
+                    new StringContent(jsonRequest,
                         Encoding.UTF8,
                         "application/json")
                 );
                 rawResponse.EnsureSuccessStatusCode();
-                var text = await rawResponse.Content.ReadAsStringAsync();
+                var response = await rawResponse.Content.ReadAsStringAsync();
 
-                if( string.IsNullOrEmpty(text) ) {
+                if( string.IsNullOrEmpty(response) ) {
                     throw new Exception("Unexpected Json response");
                 }
 
-                return JsonSerializer.Deserialize<HiveJsonRPCResult<TResponseType>>(text, _options)!;
+                return JsonSerializer.Deserialize<HiveJsonRPCResult<TResponseType>>(response, _options)!;
             }
             catch( Exception ex ) {
                 NextNode();
