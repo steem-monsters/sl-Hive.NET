@@ -1,4 +1,5 @@
-﻿using sl_Hive.Requests;
+﻿using sl_Hive.Models;
+using sl_Hive.Requests;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
