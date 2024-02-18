@@ -1,7 +1,13 @@
-﻿using System.Text.Json.Serialization;
+﻿using sl_Hive.Requests;
+using System.Text.Json.Serialization;
 
 namespace sl_Hive.Splinterlands_Ops
 {
+    [JsonDerivedType(typeof(BuildResearchHut))]
+    [JsonDerivedType(typeof(BuildSPSMine))]
+    [JsonDerivedType(typeof(BuildGrainFarm))]
+    [JsonDerivedType(typeof(HarvestPlot))]
+    [JsonDerivedType(typeof(TransferResources))]
     [JsonDerivedType(typeof(DecPowerdownRegion))]
     [JsonDerivedType(typeof(DecPowerupRegion))]
     [JsonDerivedType(typeof(SurveyLand))]
