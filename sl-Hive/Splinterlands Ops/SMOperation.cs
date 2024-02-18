@@ -2,6 +2,11 @@
 
 namespace sl_Hive.Splinterlands_Ops
 {
+    [JsonDerivedType(typeof(DecPowerdownRegion))]
+    [JsonDerivedType(typeof(DecPowerupRegion))]
+    [JsonDerivedType(typeof(SurveyLand))]
+    [JsonDerivedType(typeof(CombineTotemFragments))]
+    [JsonDerivedType(typeof(RedeemTotem))]
     [JsonDerivedType(typeof(StakeTokens))]
     public abstract class SMOperation
     {
