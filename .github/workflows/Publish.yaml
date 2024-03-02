@@ -60,6 +60,6 @@ jobs:
 
 
       - name: Publish sl-hive
-        run: nuget push ./**/sl-Hive.*.nupkg -SkipDuplicate -NoSymbols -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }}
+        run: nuget push ./**/slHive.*.nupkg -SkipDuplicate -NoSymbols -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }}
         
    
