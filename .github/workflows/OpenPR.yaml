@@ -1,0 +1,52 @@
+name: pull-request
+on: 
+  pull_request
+
+jobs:
+    update-version:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v2
+
+            - uses: actions/checkout@v2
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v1
+              with:
+                dotnet-version: 8.0.x
+
+            - name: Restore dependencies
+              run: dotnet restore
+
+            - name: Bump version and push tag
+              id: bump-and-tag
+              uses: anothrNick/github-tag-action@1.36.0
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN  }}
+                WITH_V: true
+
+            - name: version it
+              id: get-id
+              uses: actions/github-script@0.9.0
+              env:
+                DATA: ${{ steps.bump-and-tag.outputs.new_tag }}
+              with:
+                script: |
+                  const id = process.env.DATA.split('v')[1]
+                  core.setOutput('version', id)
+                
+            - name: output
+              id: tag-and-version
+              run: echo "Output tag = ${{ steps.bump-and-tag.outputs.new_tag }} parsed = ${{ steps.get-id.outputs.version }}"
+
+            - name: Build
+              run: dotnet build --no-restore -c Debug -p:Version=${{ steps.get-id.outputs.version }}
+
+            - name: Test
+              env:
+                HIVEUSERNAME: ${{ secrets.USERNAME }}
+                KEY: ${{ secrets.KEY }}
+              run: dotnet test --no-build --verbosity normal
+
+           
