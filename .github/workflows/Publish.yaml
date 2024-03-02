@@ -15,7 +15,7 @@ jobs:
         with:
           fetch-depth: '0'
 
-      - name: Setup .NET Core 6
+      - name: Setup .NET Core 8
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 8.0.x
@@ -59,10 +59,7 @@ jobs:
         run: dotnet pack -c Release --no-restore -p:Version=${{ steps.get-id.outputs.version }} -o out
 
 
-      - name: Publish SplinterLands.DTOs
-        run: nuget push ./**/SplinterLands.DTOs.*.nupkg -SkipDuplicate -NoSymbols -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }}
+      - name: Publish sl-hive
+        run: nuget push ./**/sl-Hive.*.nupkg -SkipDuplicate -NoSymbols -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }}
         
-      - name: Publish SplinterLandsAPI
-        run: nuget push ./**/SplinterLandsAPI.*.nupkg -SkipDuplicate -NoSymbols -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }}
-       
- 
+   
