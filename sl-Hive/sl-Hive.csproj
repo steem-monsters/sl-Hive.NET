@@ -7,6 +7,7 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageId>slHive</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
