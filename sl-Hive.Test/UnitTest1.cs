@@ -1,6 +1,8 @@
+using Microsoft.Extensions.Configuration;
 using sl_Hive.Models;
 using sl_Hive.Requests;
 using sl_Hive.Splinterlands_Ops;
+using System.Reflection;
 
 namespace sl_Hive.Test
 {
@@ -10,7 +12,27 @@ namespace sl_Hive.Test
         private HiveEngine hive = new HiveEngine(new HttpClient(), RPCNodeCollection.DefaultNodes);
         const string PrivKey = "5JdeC9P7Pbd1uGdFVEsJ41EkEnADbbHGq6p1BwFxm6txNBsQnsw";
         const string PublicKey = "STM8m5UgaFAAYQRuaNejYdS8FVLVp9Ss3K1qAVk5de6F8s3HnVbvA";
+        private readonly string User;
+        private readonly string PrivatePostingKey;
 
+        public UnitTest1()
+        {
+            var builder = new ConfigurationBuilder().AddUserSecrets(Assembly.GetExecutingAssembly(), true).AddEnvironmentVariables();
+
+            var Configuration = builder.Build();
+
+            PrivatePostingKey = Configuration["KEY"] ?? string.Empty;
+            User = Configuration["HIVEUSERNAME"] ?? string.Empty;
+
+            if (PrivatePostingKey == string.Empty)
+            {
+                PrivatePostingKey = Environment.GetEnvironmentVariable("KEY") ?? string.Empty;
+            }
+            if (User == string.Empty)
+            {
+                User = Environment.GetEnvironmentVariable("HIVEUSERNAME") ?? string.Empty;
+            }
+        }
 
         [TestMethod]
         public async Task ReadGlobalBlockchainProperties() {
@@ -47,54 +69,9 @@ namespace sl_Hive.Test
         [TestMethod]
         public async Task PostTransaction()
         {
-            //var hash = Sha256Manager.GetHash(
-            //    Encoding.ASCII.GetBytes(
-            //        "farpetrad" + new DateTimeOffset(new DateTime()).ToUnixTimeMilliseconds().ToString())
-            //    );
-            //var bytes = CBase58.DecodePrivateWif("");
-            //var sig = Secp256K1Manager.SignCompressedCompact(hash, bytes);
-            //var signature = Hex.ToString(sig);
-
-
-            /*var response = await hive.QueryBlockchain<HiveDynamicGlobalProperties>(HiveDynamicGlobalPropertiesRequest.Instance);
-            var request = new CustomJsonTx();
-
-            var trx = new custom_json()
-            {
-                id = "sm_stake_tokens", // whatever operation the game should perform
-                required_posting_auths = ["ahsoka"], // posting key ops
-                required_auths = [],                 // active key ops
-                json = JsonSerializer.Serialize(new StakeTokens() { qty = 1 }, HiveEngine._options),
-            };
-            var trans = new Transaction()
-            {
-                ref_block_num = (ushort)((ushort)response.Result?.Head_Block_Number & (ushort)0xFFFF),
-                ref_block_prefix = response.Result?.Ref_Block_Prefix ?? 0,
-                operations = new object[] { trx },
-                expiration = response?.Result?.Time.AddSeconds(30) ?? DateTime.UtcNow.AddSeconds(30),
-                signatures = new string[0],
-                extensions = new string[0],
-            };
-            var serializer = new SignatureSerializer();
-            var msg = serializer.Serialize(trans);
-            using(var memStream = new MemoryStream())
-            {
-                var chainIdBytes = Hex.HexToBytes(CHAINID);
-                memStream.Write(chainIdBytes, 0, chainIdBytes.Length);
-                memStream.Write(msg, 0, msg.Length);
-                
-                var digest = Sha256Manager.GetHash(memStream.ToArray());
-                var signatureBytes = CBase58.DecodePrivateWif("");
-
-
-                trans.signatures = new[] { Hex.ToString(Secp256K1Manager.SignCompressedCompact(digest, signatureBytes)) };
-                var trxId = Hex.ToString(Sha256Manager.GetHash(msg)).Substring(0, 40);
-            };
-            request.Params = new JsonArray(JsonSerializer.SerializeToNode(trans.ToParams(), HiveEngine._options));
-            var post = await hive.QueryBlockchain<JObject>(request);*/
             var post = await hive.BroadcastCustomJson(new StakeTokens() { qty = 1 },
-                                                      "ahsoka",
-                                                      "");
+                                                      User,
+                                                      PrivatePostingKey);
             Assert.IsNotNull(post);
         }
 
