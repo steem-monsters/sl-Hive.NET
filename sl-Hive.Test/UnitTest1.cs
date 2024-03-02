@@ -1,6 +1,8 @@
+using Microsoft.Extensions.Configuration;
 using sl_Hive.Models;
 using sl_Hive.Requests;
 using sl_Hive.Splinterlands_Ops;
+using System.Reflection;
 
 namespace sl_Hive.Test
 {
@@ -10,7 +12,27 @@ namespace sl_Hive.Test
         private HiveEngine hive = new HiveEngine(new HttpClient(), RPCNodeCollection.DefaultNodes);
         const string PrivKey = "5JdeC9P7Pbd1uGdFVEsJ41EkEnADbbHGq6p1BwFxm6txNBsQnsw";
         const string PublicKey = "STM8m5UgaFAAYQRuaNejYdS8FVLVp9Ss3K1qAVk5de6F8s3HnVbvA";
+        private readonly string User;
+        private readonly string PrivatePostingKey;
 
+        public UnitTest1()
+        {
+            var builder = new ConfigurationBuilder().AddUserSecrets(Assembly.GetExecutingAssembly(), true).AddEnvironmentVariables();
+
+            var Configuration = builder.Build();
+
+            PrivatePostingKey = Configuration["KEY"] ?? string.Empty;
+            User = Configuration["HIVEUSERNAME"] ?? string.Empty;
+
+            if (PrivatePostingKey == string.Empty)
+            {
+                PrivatePostingKey = Environment.GetEnvironmentVariable("KEY") ?? string.Empty;
+            }
+            if (User == string.Empty)
+            {
+                User = Environment.GetEnvironmentVariable("HIVEUSERNAME") ?? string.Empty;
+            }
+        }
 
         [TestMethod]
         public async Task ReadGlobalBlockchainProperties() {
@@ -93,8 +115,8 @@ namespace sl_Hive.Test
             request.Params = new JsonArray(JsonSerializer.SerializeToNode(trans.ToParams(), HiveEngine._options));
             var post = await hive.QueryBlockchain<JObject>(request);*/
             var post = await hive.BroadcastCustomJson(new StakeTokens() { qty = 1 },
-                                                      "ahsoka",
-                                                      "");
+                                                      User,
+                                                      PrivatePostingKey);
             Assert.IsNotNull(post);
         }
 

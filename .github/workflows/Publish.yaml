@@ -1,0 +1,68 @@
+name: Publish release to nuget
+
+on:
+    push:
+      branches: 
+       - master
+
+jobs:
+  Nuget:
+    runs-on: ubuntu-latest
+    environment: test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: '0'
+
+      - name: Setup .NET Core 6
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 8.0.x
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}  
+
+      - name: Bump version and push tag
+        id: bump-and-tag
+        uses: anothrNick/github-tag-action@1.36.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN  }}
+          WITH_V: true
+
+      - name: version it
+        id: get-id
+        uses: actions/github-script@0.9.0
+        env:
+          DATA: ${{ steps.bump-and-tag.outputs.new_tag }}
+        with:
+          script: |
+            const id = process.env.DATA.split('v')[1]
+            core.setOutput('version', id)
+
+      - name: Create releasse
+        id: release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN  }}
+        with:
+          tag_name: ${{ steps.bump-and-tag.outputs.new_tag }}
+          release_name: Release ${{ steps.bump-and-tag.outputs.new_tag }}
+          body: |
+            Changes in this release
+          draft: false
+          prerelease: false
+      
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Pack it
+        run: dotnet pack -c Release --no-restore -p:Version=${{ steps.get-id.outputs.version }} -o out
+
+
+      - name: Publish SplinterLands.DTOs
+        run: nuget push ./**/SplinterLands.DTOs.*.nupkg -SkipDuplicate -NoSymbols -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }}
+        
+      - name: Publish SplinterLandsAPI
+        run: nuget push ./**/SplinterLandsAPI.*.nupkg -SkipDuplicate -NoSymbols -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }}
+       
+ 
