@@ -12,10 +12,7 @@ namespace sl_Hive.Requests
         public JsonArray operations { get; set; } = new JsonArray();
         public JsonNode[] extensions { get; set; } = new JsonNode[0];
         public string[] signatures { get; set; } = new string[0];
-
     }
-
-    
 
     
 
